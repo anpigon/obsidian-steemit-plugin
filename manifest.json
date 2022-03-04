@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.1",
-	"minAppVersion": "0.12.0",
-	"description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"isDesktopOnly": false
+  "id": "obsidian-post-to-steemit",
+  "name": "Post to Steemit",
+  "version": "0.0.1",
+  "minAppVersion": "0.12.0",
+  "description": "A plugin for publishing Obsidian documents to Steemit.",
+  "author": "anpigon",
+  "authorUrl": "https://steemit.com/@anpigon",
+  "isDesktopOnly": false
 }
