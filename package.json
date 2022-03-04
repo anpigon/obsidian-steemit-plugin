@@ -1,29 +1,35 @@
 {
-	"name": "obsidian-post-to-steemit",
-	"version": "0.0.1",
-	"description": "A plugin for publishing Obsidian documents to Steemit. (https://steemit.com)",
-	"main": "main.js",
-	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
-	},
-	"keywords": [
-		"steem",
-		"steemit",
-		"obsidian",
-		"plugin"
-	],
-	"author": "anpigon",
-	"license": "MIT",
-	"devDependencies": {
-		"@types/node": "^16.11.6",
-		"@typescript-eslint/eslint-plugin": "^5.2.0",
-		"@typescript-eslint/parser": "^5.2.0",
-		"builtin-modules": "^3.2.0",
-		"esbuild": "0.13.12",
-		"obsidian": "^0.13.26",
-		"tslib": "2.3.1",
-		"typescript": "4.4.4"
-	}
+  "name": "obsidian-post-to-steemit",
+  "version": "0.0.1",
+  "description": "A plugin for publishing Obsidian documents to Steemit. (https://steemit.com)",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "version": "standard-version",
+    "version-test": "standard-version --dry-run",
+    "version-major": "standard-version --version-as major",
+    "version-major-test": "standard-version --dry-run --version-as major",
+    "version-minor": "standard-version --version-as minor",
+    "version-minor-test": "standard-version --dry-run --version-as minor"
+  },
+  "keywords": [
+    "steem",
+    "steemit",
+    "obsidian",
+    "plugin"
+  ],
+  "author": "anpigon",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "@typescript-eslint/eslint-plugin": "^5.2.0",
+    "@typescript-eslint/parser": "^5.2.0",
+    "builtin-modules": "^3.2.0",
+    "esbuild": "0.13.12",
+    "obsidian": "^0.13.26",
+    "tslib": "2.3.1",
+    "typescript": "4.4.4",
+    "standard-version": "^9.3.2"
+  }
 }
