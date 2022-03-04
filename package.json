@@ -6,12 +6,12 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-    "version": "standard-version",
-    "version-test": "standard-version --dry-run",
-    "version-major": "standard-version --version-as major",
-    "version-major-test": "standard-version --dry-run --version-as major",
-    "version-minor": "standard-version --version-as minor",
-    "version-minor-test": "standard-version --dry-run --version-as minor"
+    "release": "standard-version",
+    "release-test": "standard-version --dry-run",
+    "release-major": "standard-version --version-as major",
+    "release-major-test": "standard-version --dry-run --version-as major",
+    "release-minor": "standard-version --version-as minor",
+    "release-minor-test": "standard-version --dry-run --version-as minor"
   },
   "keywords": [
     "steem",
