@@ -37,7 +37,6 @@ export class SteemitClient {
           .replace(/^<!--.*-->$/ms, '')
           .trim();
 
-        console.log(this.app, this.plugin);
         const response = await broadcast.commentAsync(
           password,
           '', // Leave parent author empty
