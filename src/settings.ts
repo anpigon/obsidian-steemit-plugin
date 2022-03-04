@@ -1,17 +1,17 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import ObsidianPostToSteemitPlugin from './main';
-import { PostToSteemitPluginSettings } from './types';
+import SteemitPlugin from './main';
+import { SteemitPluginSettings } from './types';
 
-export const DEFAULT_SETTINGS: PostToSteemitPluginSettings = {
+export const DEFAULT_SETTINGS: SteemitPluginSettings = {
   category: '',
   username: '',
   password: '',
 };
 
-export class PostToSteemitSettingTab extends PluginSettingTab {
-  plugin: ObsidianPostToSteemitPlugin;
+export class SteemitSettingTab extends PluginSettingTab {
+  plugin: SteemitPlugin;
 
-  constructor(app: App, plugin: ObsidianPostToSteemitPlugin) {
+  constructor(app: App, plugin: SteemitPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -21,7 +21,7 @@ export class PostToSteemitSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    containerEl.createEl('h2', { text: 'Post to Steemit Settings' });
+    containerEl.createEl('h2', { text: 'Steemit Settings' });
 
     new Setting(containerEl)
       .setName('Username')

@@ -2,13 +2,13 @@ import { broadcast } from 'steem';
 import parserFrontMatter from 'front-matter';
 import { App, MarkdownView, Notice, parseFrontMatterTags } from 'obsidian';
 
-import ObsidianPostToSteemitPlugin from './main';
-import { PostToSteemitFrontMatter } from './types';
+import SteemitPlugin from './main';
+import { SteemitFrontMatter } from './types';
 
 export class SteemitClient {
   constructor(
     private readonly app: App,
-    private readonly plugin: ObsidianPostToSteemitPlugin,
+    private readonly plugin: SteemitPlugin,
   ) {}
 
   async newPost() {
@@ -17,7 +17,7 @@ export class SteemitClient {
     if (activeView) {
       try {
         const content = await this.app.vault.read(activeView.file);
-        const frontMatter: PostToSteemitFrontMatter =
+        const frontMatter: SteemitFrontMatter =
           parserFrontMatter(content).attributes;
 
         const tags = parseFrontMatterTags(frontMatter);

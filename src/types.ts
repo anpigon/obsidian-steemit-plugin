@@ -1,4 +1,4 @@
-export interface PostToSteemitFrontMatter {
+export interface SteemitFrontMatter {
   title?: string;
   permlink?: string;
   tags?: string[];
@@ -6,7 +6,7 @@ export interface PostToSteemitFrontMatter {
   category?: string;
 }
 
-export interface PostToSteemitPluginSettings {
+export interface SteemitPluginSettings {
   category: string;
   username: string;
   password: string;

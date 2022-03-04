@@ -6,7 +6,7 @@ on:
       - '*'
 
 env:
-  PLUGIN_NAME: obsidian-post-to-steemit
+  PLUGIN_NAME: obsidian-steemit
 
 jobs:
   build:

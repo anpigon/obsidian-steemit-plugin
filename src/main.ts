@@ -1,16 +1,13 @@
 import { Plugin } from 'obsidian';
-import {
-  DEFAULT_SETTINGS,
-  PostToSteemitPluginSettings,
-  PostToSteemitSettingTab,
-} from './settings';
+import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
+import { SteemitPluginSettings } from './types';
 
-export default class ObsidianPostToSteemitPlugin extends Plugin {
-  settings: PostToSteemitPluginSettings;
+export default class SteemitPlugin extends Plugin {
+  settings: SteemitPluginSettings;
 
   async onload() {
-    console.info('loading obsidian-post-to-steemit plugin');
+    console.info('loading obsidian-steemit plugin');
 
     await this.loadSettings();
 
@@ -19,7 +16,7 @@ export default class ObsidianPostToSteemitPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'obsidian-post-to-steemit',
+      id: 'obsidian-steemit',
       name: 'Publish to Steemit',
       callback: () => {
         new SteemitClient(this.app, this).newPost();
@@ -27,7 +24,7 @@ export default class ObsidianPostToSteemitPlugin extends Plugin {
     });
 
     // This adds a settings tab so the user can configure various aspects of the plugin
-    this.addSettingTab(new PostToSteemitSettingTab(this.app, this));
+    this.addSettingTab(new SteemitSettingTab(this.app, this));
   }
 
   onunload() {}
