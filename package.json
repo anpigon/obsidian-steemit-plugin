@@ -13,6 +13,9 @@
     "release-minor": "standard-version --version-as minor",
     "release-minor-test": "standard-version --dry-run --version-as minor"
   },
+  "standard-version": {
+    "t": ""
+  },
   "keywords": [
     "steem",
     "steemit",
