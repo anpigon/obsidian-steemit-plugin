@@ -1,11 +1,6 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import ObsidianPostToSteemitPlugin from './main';
-
-export interface PostToSteemitPluginSettings {
-  category: string;
-  username: string;
-  password: string;
-}
+import { PostToSteemitPluginSettings } from './types';
 
 export const DEFAULT_SETTINGS: PostToSteemitPluginSettings = {
   category: '',

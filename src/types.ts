@@ -5,3 +5,9 @@ export interface PostToSteemitFrontMatter {
   tag?: string[];
   category?: string;
 }
+
+export interface PostToSteemitPluginSettings {
+  category: string;
+  username: string;
+  password: string;
+}
