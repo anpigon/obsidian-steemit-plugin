@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import MyPlugin from './main';
+import ObsidianPostToSteemitPlugin from './main';
 
 export interface PostToSteemitPluginSettings {
   category: string;
@@ -14,9 +14,9 @@ export const DEFAULT_SETTINGS: PostToSteemitPluginSettings = {
 };
 
 export class PostToSteemitSettingTab extends PluginSettingTab {
-  plugin: MyPlugin;
+  plugin: ObsidianPostToSteemitPlugin;
 
-  constructor(app: App, plugin: MyPlugin) {
+  constructor(app: App, plugin: ObsidianPostToSteemitPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }

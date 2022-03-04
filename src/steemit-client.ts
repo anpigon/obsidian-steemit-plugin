@@ -49,7 +49,7 @@ export class SteemitClient {
           {
             tags: tags,
             app: `${this.plugin.manifest.id}/${this.plugin.manifest.version}`,
-          }, // Json Metad
+          }, // Json Meta
         );
         console.log(response);
 

@@ -1,13 +1,12 @@
-import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
+import { Plugin } from 'obsidian';
 import {
   DEFAULT_SETTINGS,
   PostToSteemitPluginSettings,
   PostToSteemitSettingTab,
 } from './settings';
+import { SteemitClient } from './steemit-client';
 
-// Remember to rename these classes and interfaces!
-
-export default class MyPlugin extends Plugin {
+export default class ObsidianPostToSteemitPlugin extends Plugin {
   settings: PostToSteemitPluginSettings;
 
   async onload() {
@@ -15,21 +14,15 @@ export default class MyPlugin extends Plugin {
 
     await this.loadSettings();
 
+    this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
+      new SteemitClient(this.app, this).newPost();
+    });
+
     this.addCommand({
       id: 'obsidian-post-to-steemit',
-      name: 'Publish current document to Steemit',
-      callback: async () => {
-        try {
-          console.log('callback', this.settings, this.app);
-          const markdownView =
-            this.app.workspace.getActiveViewOfType(MarkdownView);
-          if (markdownView) {
-            console.log(markdownView);
-            new Notice('Posted on Steemit!');
-          }
-        } catch (e) {
-          new Notice(e.message);
-        }
+      name: 'Publish to Steemit',
+      callback: () => {
+        new SteemitClient(this.app, this).newPost();
       },
     });
 
