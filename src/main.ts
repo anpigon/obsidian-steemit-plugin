@@ -4,7 +4,7 @@ import { SteemitClient } from './steemit-client';
 import { SteemitPluginSettings } from './types';
 
 export default class SteemitPlugin extends Plugin {
-  settings: SteemitPluginSettings;
+  settings?: SteemitPluginSettings;
 
   async onload() {
     console.info('loading obsidian-steemit plugin');
