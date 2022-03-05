@@ -3,7 +3,7 @@ import parserFrontMatter from 'front-matter';
 import { App, MarkdownView, Notice, parseFrontMatterTags } from 'obsidian';
 
 import SteemitPlugin from './main';
-import { SteemitFrontMatter } from './types';
+import { SteemitFrontMatter, SteemitJsonMetadata } from './types';
 
 export class SteemitClient {
   constructor(
@@ -16,26 +16,42 @@ export class SteemitClient {
     const activeView = workspace.getActiveViewOfType(MarkdownView);
     if (activeView) {
       try {
+        console.log(activeView);
         const content = await this.app.vault.read(activeView.file);
-        const frontMatter: SteemitFrontMatter =
-          parserFrontMatter(content).attributes;
+        const frontMatter: SteemitFrontMatter = parserFrontMatter(content)
+          .attributes as SteemitFrontMatter;
 
-        const tags = parseFrontMatterTags(frontMatter);
+        const tags = parseFrontMatterTags(frontMatter)?.map(tag =>
+          tag.replace(/^#/, '').trim(),
+        );
         const title = frontMatter?.title || activeView.file.basename;
         const permlink =
           frontMatter?.permlink ||
           new Date()
             .toISOString()
-            .replace(/[^a-zA-Z0-9]+/g, '')
+            .replace(/[^\w]+/g, '')
             .toLowerCase();
-        const category = frontMatter?.category || this.plugin.settings.category;
-        const { username, password } = this.plugin.settings;
+
+        const { username, password } = this.plugin.settings!;
+
+        const category =
+          frontMatter?.category ||
+          this.plugin.settings!.category ||
+          tags?.[0] ||
+          'kr';
 
         // Strip front-matter and HTML comments
         const parsedContent = content
           .replace(/^---$.*^---$/ms, '')
           .replace(/^<!--.*-->$/ms, '')
           .trim();
+
+        const jsonMetadata: SteemitJsonMetadata = {
+          app: `${this.plugin.manifest.id}/${this.plugin.manifest.version}`,
+        };
+        if (tags && tags.length) {
+          jsonMetadata['tags'] = tags;
+        }
 
         const response = await broadcast.commentAsync(
           password,
@@ -45,15 +61,11 @@ export class SteemitClient {
           permlink, // Permlink
           title, // Title
           parsedContent, // Body
-          {
-            tags: tags,
-            app: `${this.plugin.manifest.id}/${this.plugin.manifest.version}`,
-          }, // Json Meta
+          jsonMetadata, // Json Meta
         );
-        console.log(response);
 
         new Notice('Post published successfully!');
-      } catch (ex) {
+      } catch (ex: any) {
         console.warn(ex);
         new Notice(ex.toString());
       }
