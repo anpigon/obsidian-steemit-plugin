@@ -8,7 +8,7 @@ declare module 'steem' {
       permlink: string,
       title: string,
       body: string,
-      json_metadata?: { tags?: string[]; app?: string },
+      json_metadata?: { tags?: string[] | null; app?: string },
     ): Promise<any>;
   }
 }
