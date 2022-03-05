@@ -11,3 +11,8 @@ export interface SteemitPluginSettings {
   username: string;
   password: string;
 }
+
+export interface SteemitJsonMetadata {
+  app: string;
+  tags?: string[];
+}
