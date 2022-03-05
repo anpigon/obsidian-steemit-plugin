@@ -16,7 +16,6 @@ export class SteemitClient {
     const activeView = workspace.getActiveViewOfType(MarkdownView);
     if (activeView) {
       try {
-        console.log(activeView);
         const content = await this.app.vault.read(activeView.file);
         const frontMatter: SteemitFrontMatter = parserFrontMatter(content)
           .attributes as SteemitFrontMatter;
