@@ -1,5 +1,5 @@
 import { broadcast } from 'steem';
-import parserFrontMatter from 'front-matter';
+import matter, { GrayMatterOption } from 'gray-matter';
 import { App, MarkdownView, Notice, parseFrontMatterTags } from 'obsidian';
 
 import SteemitPlugin from './main';
@@ -16,9 +16,9 @@ export class SteemitClient {
     const activeView = workspace.getActiveViewOfType(MarkdownView);
     if (activeView) {
       try {
-        const content = await this.app.vault.read(activeView.file);
-        const frontMatter: SteemitFrontMatter = parserFrontMatter(content)
-          .attributes as SteemitFrontMatter;
+        const fileContent = await this.app.vault.read(activeView.file);
+        const parsedMatter = matter(fileContent);
+        const frontMatter: SteemitFrontMatter = parsedMatter.data;
 
         const tags = parseFrontMatterTags(frontMatter)?.map(tag =>
           tag.replace(/^#/, '').trim(),
@@ -40,8 +40,7 @@ export class SteemitClient {
           'kr';
 
         // Strip front-matter and HTML comments
-        const parsedContent = content
-          .replace(/^---$.*^---$/ms, '')
+        const parsedContent = parsedMatter.content
           .replace(/^<!--.*-->$/ms, '')
           .trim();
 
