@@ -11,9 +11,9 @@ export default class SteemitPlugin extends Plugin {
 
     await this.loadSettings();
 
-    this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
-      new SteemitClient(this.app, this).newPost();
-    });
+    // this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
+    //   new SteemitClient(this.app, this).newPost();
+    // });
 
     this.addCommand({
       id: 'obsidian-steemit',
