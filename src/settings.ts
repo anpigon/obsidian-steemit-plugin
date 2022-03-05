@@ -29,9 +29,9 @@ export class SteemitSettingTab extends PluginSettingTab {
       .addText(text => {
         text
           .setPlaceholder('anpigon')
-          .setValue(this.plugin.settings.username)
+          .setValue(this.plugin.settings?.username ?? '')
           .onChange(async value => {
-            this.plugin.settings.username = value;
+            this.plugin.settings!.username = value;
             await this.plugin.saveSettings();
           });
       });
@@ -44,22 +44,22 @@ export class SteemitSettingTab extends PluginSettingTab {
       .addText(text => {
         text
           .setPlaceholder('Your password')
-          .setValue(this.plugin.settings.password)
+          .setValue(this.plugin.settings?.password ?? '')
           .onChange(async value => {
-            this.plugin.settings.password = value;
+            this.plugin.settings!.password = value;
             await this.plugin.saveSettings();
           });
       });
 
     new Setting(containerEl)
-      .setName('Category')
+      .setName('Default Category')
       .setDesc('Enter the category you want to post.')
       .addText(text => {
         text
           .setPlaceholder('hive-137029')
-          .setValue(this.plugin.settings.category)
+          .setValue(this.plugin.settings?.category ?? '')
           .onChange(async value => {
-            this.plugin.settings.category = value;
+            this.plugin.settings!.category = value;
             await this.plugin.saveSettings();
           });
       });
