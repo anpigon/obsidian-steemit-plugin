@@ -19,6 +19,7 @@ Post directly to your Steemit from Obsidian.
 
 ```yml
 ---
+title: this-is-a-title
 permlink: this-is-a-permlink
 category: hive-137029
 tags: kr-dev steemit
