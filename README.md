@@ -7,7 +7,7 @@ Post directly to your Steemit from Obsidian.
 - From the plugin settings page, add your credentials
 - Make sure your Steemit user has the ability to create posts
 - Verify your settings are working from the plugin settings page
-- Use the "Publish to Steemit" command to upload the current page to your WordPress website
+- Use the "Publish to Steemit" command to upload the current page to your Steemit website
 
 ## Plugin Options
 
