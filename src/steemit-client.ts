@@ -1,4 +1,5 @@
-import { broadcast } from 'steem';
+import { Client } from 'dsteem/lib/client';
+import { PrivateKey } from 'dsteem/lib/crypto';
 import { App, MarkdownView, Notice, parseFrontMatterTags } from 'obsidian';
 
 import SteemitPlugin from './main';
@@ -55,15 +56,18 @@ export class SteemitClient {
           jsonMetadata['tags'] = tags;
         }
 
-        const response = await broadcast.commentAsync(
-          password,
-          '', // Leave parent author empty
-          category, // Main tag
-          username, // Author
-          permlink, // Permlink
-          title, // Title
-          parsedContent, // Body
-          jsonMetadata, // Json Meta
+        const client = new Client('https://api.steem.com');
+        const response = await client.broadcast.comment(
+          {
+            parent_author: '', // Leave parent author empty
+            parent_permlink: category, // Main tag
+            author: username, // Author
+            permlink: permlink, // Permlink
+            title: title, // Title
+            body: parsedContent, // Body
+            json_metadata: JSON.stringify(jsonMetadata), // Json Meta
+          },
+          PrivateKey.fromString(password),
         );
 
         new Notice('Post published successfully!');
