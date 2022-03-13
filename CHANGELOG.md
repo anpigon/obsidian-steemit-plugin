@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [0.0.4](https://github.dev/anpigon/obsidian-steemit-plugin/compare/0.0.3...0.0.4) (2022-03-13)
 
+- Change the steemjs package to dsteem.
+- Reduced bundle size.
+- Update permlink after publish.
+
 ### [0.0.3](https://github.dev/anpigon/obsidian-steemit-plugin/compare/0.0.2...0.0.3) (2022-03-09)
 
 - Using cachedRead for better performance.
