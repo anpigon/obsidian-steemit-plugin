@@ -70,6 +70,11 @@ export class SteemitClient {
           PrivateKey.fromString(password),
         );
 
+        await this.app.vault.modify(
+          activeView.file,
+          fileContent.replace(/^(permlink:).*$/m, `$1 ${permlink}`),
+        );
+
         new Notice(`Post published successfully! ${response.id}`);
       } catch (ex: any) {
         console.warn(ex);
