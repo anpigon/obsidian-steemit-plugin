@@ -56,7 +56,7 @@ export class SteemitClient {
           jsonMetadata['tags'] = tags;
         }
 
-        const client = new Client('https://api.steem.com');
+        const client = new Client('https://api.steemit.com');
         const response = await client.broadcast.comment(
           {
             parent_author: '', // Leave parent author empty
@@ -70,7 +70,12 @@ export class SteemitClient {
           PrivateKey.fromString(password),
         );
 
-        new Notice('Post published successfully!');
+        await this.app.vault.modify(
+          activeView.file,
+          fileContent.replace(/^(permlink:).*$/m, `$1 ${permlink}`),
+        );
+
+        new Notice(`Post published successfully! ${response.id}`);
       } catch (ex: any) {
         console.warn(ex);
         new Notice(ex.toString());
