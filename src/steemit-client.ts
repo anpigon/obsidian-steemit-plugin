@@ -49,29 +49,32 @@ export class SteemitClient {
           .replace(/^<!--.*-->$/ms, '')
           .trim();
 
+        const appName = this.plugin.settings?.appName || `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
         const jsonMetadata: SteemitJsonMetadata = {
-          app: `${this.plugin.manifest.id}/${this.plugin.manifest.version}`,
+          format: 'markdown',
+          app: appName,
         };
         if (tags && tags.length) {
           jsonMetadata['tags'] = tags;
         }
+        const data = {
+          parent_author: '', // Leave parent author empty
+          parent_permlink: category, // Main tag
+          author: username, // Author
+          permlink: permlink, // Permlink
+          title: title, // Title
+          body: parsedContent, // Body
+          json_metadata: JSON.stringify(jsonMetadata), // Json Meta
+        };
 
         const client = new Client('https://api.steemit.com');
         const response = await client.broadcast.comment(
-          {
-            parent_author: '', // Leave parent author empty
-            parent_permlink: category, // Main tag
-            author: username, // Author
-            permlink: permlink, // Permlink
-            title: title, // Title
-            body: parsedContent, // Body
-            json_metadata: JSON.stringify(jsonMetadata), // Json Meta
-          },
+          data,
           PrivateKey.fromString(password),
         );
 
         await this.app.vault.modify(
-          activeView.file,
+          activeView!.file,
           fileContent.replace(/^(permlink:).*$/m, `$1 ${permlink}`),
         );
 
