@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.5](https://github.dev/anpigon/obsidian-steemit-plugin/compare/0.0.4...0.0.5) (2022-03-28)
+
 ### [0.0.4](https://github.dev/anpigon/obsidian-steemit-plugin/compare/0.0.3...0.0.4) (2022-03-13)
 
 - Change the steemjs package to dsteem.
