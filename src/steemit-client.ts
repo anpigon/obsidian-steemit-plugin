@@ -9,7 +9,73 @@ export class SteemitClient {
   constructor(
     private readonly app: App,
     private readonly plugin: SteemitPlugin,
-  ) {}
+  ) {
+    this.client = new Client('https://api.steemit.com');
+  }
+
+  readonly client: Client;
+
+  async getPost() {
+    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (activeView) {
+      try {
+        const frontMatter = this.app.metadataCache.getFileCache(activeView.file)
+          ?.frontmatter as SteemitFrontMatter;
+        if (!frontMatter) {
+          new Notice('Front Matter not found. expect a url.');
+          return;
+        }
+
+        let author = this.plugin.settings?.username;
+        let permlink = frontMatter.permlink;
+
+        const url = frontMatter.url;
+        if (url) {
+          const urls = url.replace(/\?.*$/, '').split('/');
+          permlink = urls.pop();
+          author = urls.pop()?.replace(/^@/, '');
+        }
+
+        const response = await this.client.database.call('get_content', [
+          author,
+          permlink,
+        ]);
+
+        const frontMatterKeysForSteemit = [
+          'category',
+          'permlink',
+          'title',
+          'tags',
+        ];
+        frontMatterKeysForSteemit.forEach(key => {
+          if (!frontMatter.hasOwnProperty(key)) {
+            frontMatter[key] = '';
+          }
+        });
+
+        const jsonMetadata = JSON.parse(response.json_metadata || '{}');
+
+        frontMatter.category = response.category;
+        frontMatter.title = response.title;
+        frontMatter.permlink = response.permlink;
+        frontMatter.tags = jsonMetadata.tags;
+
+        const frontMatterString = Object.entries(frontMatter)
+          .filter(([key]) => key !== 'position')
+          .map(([key, value]) => `${key}: ${value ?? ''}`)
+          .join('\n');
+        const fileContent = `---\n${frontMatterString}\n---\n${response.body}`;
+        await this.app.vault.modify(activeView.file, fileContent);
+      } catch (ex: any) {
+        console.warn(ex);
+        new Notice(ex.toString());
+      }
+    } else {
+      const error = 'There is no editor view found.';
+      console.warn(error);
+      new Notice(error.toString());
+    }
+  }
 
   async newPost() {
     const { workspace } = this.app;
@@ -49,7 +115,9 @@ export class SteemitClient {
           .replace(/^<!--.*-->$/ms, '')
           .trim();
 
-        const appName = this.plugin.settings?.appName || `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
+        const appName =
+          this.plugin.settings?.appName ||
+          `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
         const jsonMetadata: SteemitJsonMetadata = {
           format: 'markdown',
           app: appName,
@@ -67,8 +135,7 @@ export class SteemitClient {
           json_metadata: JSON.stringify(jsonMetadata), // Json Meta
         };
 
-        const client = new Client('https://api.steemit.com');
-        const response = await client.broadcast.comment(
+        const response = await this.client.broadcast.comment(
           data,
           PrivateKey.fromString(password),
         );

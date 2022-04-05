@@ -1,6 +1,9 @@
-export interface SteemitFrontMatter {
+import { FrontMatterCache } from "obsidian";
+
+export interface SteemitFrontMatter extends FrontMatterCache {
   title?: string;
   permlink?: string;
+  url?: string;
   tags?: string[];
   tag?: string[];
   category?: string;
