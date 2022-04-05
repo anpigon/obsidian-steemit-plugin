@@ -19,7 +19,7 @@ export default class SteemitPlugin extends Plugin {
     // });
 
     this.addCommand({
-      id: 'obsidian-steemit',
+      id: 'obsidian-steemit-publish',
       name: 'Publish to Steemit',
       callback: () => {
         new SteemitClient(this.app, this).newPost();
@@ -27,7 +27,7 @@ export default class SteemitPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'obsidian-steemit',
+      id: 'obsidian-steemit-import-from-url',
       name: 'Import from url',
       callback: () => {
         new SteemitClient(this.app, this).getPost();
