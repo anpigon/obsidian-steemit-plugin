@@ -4,6 +4,7 @@ import { App, MarkdownView, Notice, parseFrontMatterTags } from 'obsidian';
 
 import SteemitPlugin from './main';
 import { SteemitFrontMatter, SteemitJsonMetadata } from './types';
+import { addFrontMatter, toStringFrontMatter } from './utils';
 
 export class SteemitClient {
   constructor(
@@ -40,40 +41,22 @@ export class SteemitClient {
           author,
           permlink,
         ]);
-
-        const frontMatterKeysForSteemit = [
-          'category',
-          'permlink',
-          'title',
-          'tags',
-        ];
-        frontMatterKeysForSteemit.forEach(key => {
-          if (!frontMatter.hasOwnProperty(key)) {
-            frontMatter[key] = '';
-          }
-        });
-
         const jsonMetadata = JSON.parse(response.json_metadata || '{}');
-
-        frontMatter.category = response.category;
-        frontMatter.title = response.title;
-        frontMatter.permlink = response.permlink;
-        frontMatter.tags = jsonMetadata.tags;
-
-        const frontMatterString = Object.entries(frontMatter)
-          .filter(([key]) => key !== 'position')
-          .map(([key, value]) => `${key}: ${value ?? ''}`)
-          .join('\n');
-        const fileContent = `---\n${frontMatterString}\n---\n${response.body}`;
+        const newFrontMatter = addFrontMatter(frontMatter, {
+          category: response.category,
+          title: response.title,
+          permlink: response.permlink,
+          tags: jsonMetadata.tags,
+        });
+        const frontMatterString = toStringFrontMatter(newFrontMatter);
+        const fileContent = `${frontMatterString}\n${response.body}`;
         await this.app.vault.modify(activeView.file, fileContent);
       } catch (ex: any) {
         console.warn(ex);
         new Notice(ex.toString());
       }
     } else {
-      const error = 'There is no editor view found.';
-      console.warn(error);
-      new Notice(error.toString());
+      new Notice('There is no editor view found.');
     }
   }
 
@@ -151,9 +134,7 @@ export class SteemitClient {
         new Notice(ex.toString());
       }
     } else {
-      const error = 'There is no editor found. Nothing will be published.';
-      console.warn(error);
-      new Notice(error.toString());
+      new Notice('There is no editor found. Nothing will be published.');
     }
   }
 }
