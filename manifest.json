@@ -6,5 +6,5 @@
   "description": "A plugin for publishing Obsidian documents to Steemit.",
   "author": "anpigon",
   "authorUrl": "https://steemit.com/@anpigon",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }
