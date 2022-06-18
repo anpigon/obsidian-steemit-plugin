@@ -35,11 +35,14 @@ export class SteemitClient {
             .replace(/[^\w]+/g, '')
             .toLowerCase();
 
-        const { username, password } = this.plugin.settings!;
+        const { username, password } = this.plugin.settings || {};
+        if (!username || !password) {
+          throw Error('Your account is invalid.');
+        }
 
         const category =
           frontMatter?.category ||
-          this.plugin.settings!.category ||
+          this.plugin.settings?.category ||
           tags?.[0] ||
           'kr';
 
@@ -74,7 +77,7 @@ export class SteemitClient {
         );
 
         await this.app.vault.modify(
-          activeView!.file,
+          activeView.file,
           fileContent.replace(/^(permlink:).*$/m, `$1 ${permlink}`),
         );
 
