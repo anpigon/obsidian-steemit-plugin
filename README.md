@@ -19,10 +19,10 @@ Post directly to your Steemit from Obsidian.
 
 ```yml
 ---
-title: this-is-a-title
-permlink: this-is-a-permlink
-category: hive-137029
-tags: kr-dev steemit
+title: #this-is-a-title
+permlink: #this-is-a-permlink
+category: #example: hive-137029
+tags: #example: kr-dev steemit
 ---
 ```
 

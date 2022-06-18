@@ -1,20 +1,21 @@
-import { Client } from 'dsteem/lib/client';
-import { PrivateKey } from 'dsteem/lib/crypto';
+import steemTx from 'steem-tx';
 import { App, MarkdownView, Notice, parseFrontMatterTags } from 'obsidian';
 
 import SteemitPlugin from './main';
 import { SteemitFrontMatter, SteemitJsonMetadata } from './types';
 import { addFrontMatter, toStringFrontMatter } from './utils';
 
+// steemit node rpc config
+steemTx.config.node = 'https://api.steemit.com';
+steemTx.config.chain_id =
+  '0000000000000000000000000000000000000000000000000000000000000000';
+steemTx.config.address_prefix = 'STM';
+
 export class SteemitClient {
   constructor(
     private readonly app: App,
     private readonly plugin: SteemitPlugin,
-  ) {
-    this.client = new Client('https://api.steemit.com');
-  }
-
-  readonly client: Client;
+  ) {}
 
   async getPost() {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -37,10 +38,16 @@ export class SteemitClient {
           author = urls.pop()?.replace(/^@/, '');
         }
 
-        const response = await this.client.database.call('get_content', [
-          author,
-          permlink,
+        // const { result: response } = await steemTx.call('get_content', [
+        //   author,
+        //   permlink,
+        // ]);
+        const { result: response } = await steemTx.call('call', [
+          'database_api',
+          'get_content',
+          [author, permlink],
         ]);
+
         const jsonMetadata = JSON.parse(response.json_metadata || '{}');
         const newFrontMatter = addFrontMatter(frontMatter, {
           category: response.category,
@@ -84,11 +91,14 @@ export class SteemitClient {
             .replace(/[^\w]+/g, '')
             .toLowerCase();
 
-        const { username, password } = this.plugin.settings!;
+        const { username, password } = this.plugin.settings ?? {};
+        if (!username || !password) {
+          throw Error('Your account is invalid.');
+        }
 
         const category =
           frontMatter?.category ||
-          this.plugin.settings!.category ||
+          this.plugin.settings?.category ||
           tags?.[0] ||
           'kr';
 
@@ -118,17 +128,34 @@ export class SteemitClient {
           json_metadata: JSON.stringify(jsonMetadata), // Json Meta
         };
 
-        const response = await this.client.broadcast.comment(
-          data,
-          PrivateKey.fromString(password),
+        // Create transaction:
+        const operations = [['comment', data]];
+        console.log(operations);
+        const tx = new steemTx.Transaction();
+        await tx.create(operations);
+        console.log(tx);
+
+        // Sign transaction:
+        const privateKey = steemTx.PrivateKey.fromString(password);
+        const signedTransaction = tx.sign(privateKey);
+
+        // Broadcast transaction:
+        // const response = await tx.broadcast().then(r => {
+        //   if ('result' in r) return r.result;
+        //   throw Error((r.error as { data: Error }).data.message);
+        // });
+        const response = await steemTx.call(
+          'condenser_api.broadcast_transaction',
+          [signedTransaction],
         );
+        console.log(response);
 
         await this.app.vault.modify(
-          activeView!.file,
+          activeView.file,
           fileContent.replace(/^(permlink:).*$/m, `$1 ${permlink}`),
         );
 
-        new Notice(`Post published successfully! ${response.id}`);
+        new Notice(`Post published successfully! ${response.tx_id}`);
       } catch (ex: any) {
         console.warn(ex);
         new Notice(ex.toString());
