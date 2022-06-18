@@ -24,3 +24,11 @@ export interface SteemitJsonMetadata {
   canonical_url?: string;
   image?: string[];
 }
+
+export interface SteemitPost {
+  category?: string;
+  permlink?: string;
+  title?: string;
+  body?: string;
+  tags?: string;
+}
