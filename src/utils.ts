@@ -62,12 +62,7 @@ export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<
       ?.map(tag => tag.replace(/^#/, '').trim())
       .join(' ') ?? '';
 
-  const permlink =
-    frontMatter?.permlink ||
-    new Date()
-      .toISOString()
-      .replace(/[^\w]+/g, '')
-      .toLowerCase();
+  const permlink = frontMatter?.permlink || makeDefaultPermlink();
 
   const category = frontMatter?.category;
 
@@ -78,4 +73,11 @@ export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<
     body,
     tags,
   };
+}
+
+function makeDefaultPermlink() {
+  return new Date()
+    .toISOString()
+    .replace(/[^\w]+/g, '')
+    .toLowerCase();
 }

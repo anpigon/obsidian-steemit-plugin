@@ -44,7 +44,7 @@ export class SteemitClient {
 
     const data: CommentOperation[1] = {
       parent_author: '', // Leave parent author empty
-      parent_permlink: post.category ?? '', // Main tag
+      parent_permlink: post.category || tags?.[0] || 'steemit', // Main tag
       author: this.username, // Author
       permlink: post.permlink, // Permlink
       title: post.title, // Title

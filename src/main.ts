@@ -17,9 +17,9 @@ export default class SteemitPlugin extends Plugin {
     // this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
     //   this.publishSteemit();
     // });
-    // this.addRibbonIcon('dice', 'Import from url', (evt: MouseEvent) => {
-    //   new SteemitClient(this.app, this).getPost();
-    // });
+    this.addRibbonIcon('dice', 'Import from url', (evt: MouseEvent) => {
+      this.scrapSteemit();
+    });
 
     this.addCommand({
       id: 'obsidian-steemit-publish',
@@ -33,42 +33,7 @@ export default class SteemitPlugin extends Plugin {
       id: 'obsidian-steemit-import-from-url',
       name: 'Import from url',
       callback: async () => {
-        try {
-          const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-          if (!activeView) {
-            throw new Error('There is no editor view found.');
-          }
-
-          const frontMatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
-          if (!frontMatter) {
-            throw new Error('Front Matter not found. expect a url.');
-          }
-
-          let username = this.settings?.username ?? '';
-          let permlink = frontMatter.permlink;
-          const url = frontMatter.url;
-          if (url) {
-            const urls = url.replace(/\?.*$/, '').split('/');
-            permlink = urls.pop();
-            username = urls.pop()?.replace(/^@/, '');
-          }
-
-          const client = new SteemitClient('', '');
-          const response = await client.getPost(username, permlink);
-          const jsonMetadata = JSON.parse(response.json_metadata || '{}');
-          const newFrontMatter = addFrontMatter(frontMatter, {
-            category: response.category,
-            title: response.title,
-            permlink: response.permlink,
-            tags: jsonMetadata.tags,
-          });
-          const frontMatterString = toStringFrontMatter(newFrontMatter);
-          const fileContent = `${frontMatterString}\n${response.body}`;
-          await this.app.vault.modify(activeView.file, fileContent);
-        } catch (ex: any) {
-          console.warn(ex);
-          new Notice(ex.toString());
-        }
+        this.scrapSteemit();
       },
     });
 
@@ -84,8 +49,52 @@ export default class SteemitPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
+  async scrapSteemit() {
+    try {
+      const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+      if (!activeView) {
+        throw new Error('There is no editor view found.');
+      }
+
+      const frontMatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
+      if (!frontMatter) {
+        throw new Error('Front Matter not found. expect a url.');
+      }
+
+      let username = this.settings?.username ?? '';
+      let permlink = frontMatter.permlink;
+      const url = frontMatter.url;
+      if (url) {
+        const urls = url.replace(/\?.*$/, '').split('/');
+        permlink = urls.pop();
+        username = urls.pop()?.replace(/^@/, '');
+      }
+
+      const client = new SteemitClient('', '');
+      const response = await client.getPost(username, permlink);
+      const jsonMetadata = JSON.parse(response.json_metadata || '{}');
+      const newFrontMatter = addFrontMatter(frontMatter, {
+        category: response.category,
+        title: response.title,
+        permlink: response.permlink,
+        tags: jsonMetadata.tags,
+      });
+      const frontMatterString = toStringFrontMatter(newFrontMatter);
+      const fileContent = `${frontMatterString}\n${response.body}`;
+      await this.app.vault.modify(activeView.file, fileContent);
+    } catch (ex: any) {
+      console.warn(ex);
+      new Notice(ex.toString());
+    }
+  }
+
   async publishSteemit() {
     try {
+      const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+      if (!activeView) {
+        throw new Error('There is no editor view found.');
+      }
+
       // check username and password
       const { username, password } = this.settings || {};
       if (!username || !password) {
