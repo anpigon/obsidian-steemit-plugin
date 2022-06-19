@@ -2,8 +2,8 @@ import { request } from 'obsidian';
 import { Client } from 'dsteem/lib/client';
 import { PrivateKey } from 'dsteem/lib/crypto';
 
-// import SteemitPlugin from './main';
 import { SteemitJsonMetadata, SteemitPost, SteemitRPCCommunities, SteemitRPCError } from './types';
+import { CommentOperation } from 'dsteem/lib/steem/operation';
 
 export class SteemitClient {
   private readonly client: Client;
@@ -31,20 +31,20 @@ export class SteemitClient {
     return (json as SteemitRPCCommunities).result;
   }
 
-  async broadcast(post: SteemitPost) {
-    const tags = post.tags?.split(/\s|,/);
-    const category = post.category; // || tags?.[0] || 'kr';
-
+  newPost(post: SteemitPost) {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
       app: post.appName ?? '',
     };
+
+    const tags = post.tags?.split(/\s|,/);
     if (tags && tags.length) {
       jsonMetadata['tags'] = tags;
     }
-    const data = {
+
+    const data: CommentOperation[1] = {
       parent_author: '', // Leave parent author empty
-      parent_permlink: category, // Main tag
+      parent_permlink: post.category ?? '', // Main tag
       author: this.username, // Author
       permlink: post.permlink, // Permlink
       title: post.title, // Title
@@ -53,7 +53,10 @@ export class SteemitClient {
     };
 
     const privateKey = PrivateKey.fromString(this.password);
-    const response = await this.client.broadcast.comment(data, privateKey);
-    return response;
+    return this.client.broadcast.comment(data, privateKey);
+  }
+
+  getPost(username: string, permlink: string) {
+    return this.client.database.call('get_content', [username, permlink]);
   }
 }

@@ -3,7 +3,8 @@ import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
 import { SubmitConfirmModal } from './submit_confirm_modal';
 import { SteemitPluginSettings } from './types';
-import { getPostDataFromActiveView } from './utils';
+
+import { addFrontMatter, toStringFrontMatter, getPostDataFromActiveView } from './utils';
 
 export default class SteemitPlugin extends Plugin {
   settings?: SteemitPluginSettings;
@@ -22,6 +23,49 @@ export default class SteemitPlugin extends Plugin {
       name: 'Publish to Steemit',
       callback: () => {
         this.publishSteemit();
+      },
+    });
+
+    this.addCommand({
+      id: 'obsidian-steemit-import-from-url',
+      name: 'Import from url',
+      callback: async () => {
+        try {
+          const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+          if (!activeView) {
+            throw new Error('There is no editor view found.');
+          }
+
+          const frontMatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
+          if (!frontMatter) {
+            throw new Error('Front Matter not found. expect a url.');
+          }
+
+          let username = this.settings?.username ?? '';
+          let permlink = frontMatter.permlink;
+          const url = frontMatter.url;
+          if (url) {
+            const urls = url.replace(/\?.*$/, '').split('/');
+            permlink = urls.pop();
+            username = urls.pop()?.replace(/^@/, '');
+          }
+
+          const client = new SteemitClient('', '');
+          const response = await client.getPost(username, permlink);
+          const jsonMetadata = JSON.parse(response.json_metadata || '{}');
+          const newFrontMatter = addFrontMatter(frontMatter, {
+            category: response.category,
+            title: response.title,
+            permlink: response.permlink,
+            tags: jsonMetadata.tags,
+          });
+          const frontMatterString = toStringFrontMatter(newFrontMatter);
+          const fileContent = `${frontMatterString}\n${response.body}`;
+          await this.app.vault.modify(activeView.file, fileContent);
+        } catch (ex: any) {
+          console.warn(ex);
+          new Notice(ex.toString());
+        }
       },
     });
 
@@ -59,7 +103,7 @@ export default class SteemitPlugin extends Plugin {
 
       new SubmitConfirmModal(this.app, data, categories, async result => {
         try {
-          const response = await client.broadcast(data);
+          const response = await client.newPost(data);
 
           const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
           if (activeView) {
