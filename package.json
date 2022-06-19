@@ -1,6 +1,6 @@
 {
   "name": "obsidian-steemit",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "A plugin for publishing Obsidian documents to Steemit. (https://steemit.com)",
   "main": "main.js",
   "scripts": {
@@ -8,10 +8,10 @@
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "release": "standard-version",
     "release-test": "standard-version --dry-run",
-    "release-major": "standard-version --version-as major",
-    "release-major-test": "standard-version --dry-run --version-as major",
-    "release-minor": "standard-version --version-as minor",
-    "release-minor-test": "standard-version --dry-run --version-as minor"
+    "release-major": "standard-version --release-as major",
+    "release-major-test": "standard-version --dry-run --release-as major",
+    "release-minor": "standard-version --release-as minor",
+    "release-minor-test": "standard-version --dry-run --release-as minor"
   },
   "standard-version": {
     "t": ""
