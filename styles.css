@@ -5,6 +5,15 @@
   justify-content: space-between;
 }
 
+.steem-plugin__container input:disabled,
+.steem-plugin__container input:disabled:active,
+.steem-plugin__container input:disabled:focus,
+.steem-plugin__container input:disabled:hover {
+  border-color: var(--background-modifier-border);
+  color: grey;
+  opacity: 0.8;
+} 
+
 .steem-plugin__label {
   text-transform: capitalize;
   margin-right: 10px;

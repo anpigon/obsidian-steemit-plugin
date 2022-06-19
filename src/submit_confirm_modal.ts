@@ -1,17 +1,21 @@
 import { App, Modal, Setting, TextComponent, DropdownComponent } from 'obsidian';
-import { SteemitPost } from './types';
+import { SteemitPost, SteemitRPCCommunities } from './types';
 
 export class SubmitConfirmModal extends Modal {
-  data: SteemitPost;
-  callback: (data: SteemitPost) => void;
-
-  constructor(app: App, data: SteemitPost, callback: (data: SteemitPost) => void) {
+  constructor(
+    app: App,
+    private data: SteemitPost,
+    private categories: SteemitRPCCommunities['result'],
+    private readonly callback: (data: SteemitPost) => void,
+  ) {
     super(app);
-    this.data = data;
-    this.callback = callback;
   }
 
-  handleCallback() {
+  async handleCallback() {
+    if(!this.data.category || this.data.category === '0') {
+      this.data.category = '';
+    }
+    this.close();
     this.callback(this.data);
   }
 
@@ -29,10 +33,19 @@ export class SubmitConfirmModal extends Modal {
   onOpen() {
     const { contentEl } = this;
 
-    contentEl.createEl('h2', { text: 'Posting on Steemit' });
+    contentEl.createEl('h2', { text: 'Publish to steemit' });
 
     const categoryContainer = this.createContainer(contentEl);
-    new DropdownComponent(categoryContainer);
+    const categoryComponent = new DropdownComponent(categoryContainer);
+    categoryComponent.addOption('0', 'My Blog');
+    categoryComponent.addOptions(
+      this.categories.reduce<{ [k in string]: string }>((a, b) => {
+        a[b.name] = b.title;
+        return a;
+      }, {}),
+    );
+    categoryComponent.setValue(this.data.category || '0');
+    categoryComponent.onChange(value => (this.data.category = value));
 
     const permlinkContainer = this.createContainer(contentEl, 'permlink');
     const permlinkComponent = new TextComponent(contentEl);
@@ -55,12 +68,19 @@ export class SubmitConfirmModal extends Modal {
     tagComponent.onChange(value => (this.data.tags = value));
     tagContainer.appendChild(tagComponent.inputEl);
 
+    const appNameContainer = this.createContainer(contentEl, 'appName');
+    const appNameComponent = new TextComponent(contentEl);
+    appNameComponent.inputEl.className = 'steem-plugin__w80';
+    appNameComponent.setDisabled(true);
+    appNameComponent.setValue(this.data.appName ?? '');
+    appNameContainer.appendChild(appNameComponent.inputEl);
+
     // buttons
     new Setting(contentEl)
       .addButton(btn => btn.setButtonText('Cancel').onClick(() => this.close()))
       .addButton(btn =>
         btn
-          .setButtonText('Ok')
+          .setButtonText('Publish')
           .setCta()
           .onClick(() => this.handleCallback()),
       );

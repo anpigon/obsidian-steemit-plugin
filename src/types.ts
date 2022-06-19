@@ -27,8 +27,55 @@ export interface SteemitJsonMetadata {
 
 export interface SteemitPost {
   category?: string;
-  permlink?: string;
-  title?: string;
-  body?: string;
-  tags?: string;
+  permlink: string;
+  title: string;
+  body: string;
+  tags: string;
+  appName?: string;
+}
+
+export interface SteemitRPCError {
+  id: number;
+  jsonrpc: string;
+  error: {
+    code: number;
+    message: string;
+    data: string;
+  };
+}
+
+export interface SteemitRPCError {
+  id: number;
+  jsonrpc: string;
+  error: {
+    code: number;
+    message: string;
+    data: string;
+  };
+}
+
+export interface SteemitRPCCommunities {
+  id: number;
+  jsonrpc: string;
+  result: {
+    id: number;
+    name: string;
+    title: string;
+    about: string;
+    lang: string;
+    type_id: number;
+    is_nsfw: boolean;
+    subscribers: number;
+    sum_pending: number;
+    num_pending: number;
+    num_authors: number;
+    created_at: string;
+    avatar_url: string;
+    context: {
+      subscribed: boolean;
+      role: string;
+      title: string;
+    };
+    admins: string[];
+  }[];
 }

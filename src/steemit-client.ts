@@ -1,95 +1,59 @@
+import { request } from 'obsidian';
 import { Client } from 'dsteem/lib/client';
 import { PrivateKey } from 'dsteem/lib/crypto';
-import { App, MarkdownView, Notice, parseFrontMatterTags } from 'obsidian';
 
-import SteemitPlugin from './main';
-import { SteemitFrontMatter, SteemitJsonMetadata } from './types';
+// import SteemitPlugin from './main';
+import { SteemitJsonMetadata, SteemitPost, SteemitRPCCommunities, SteemitRPCError } from './types';
 
 export class SteemitClient {
-  constructor(
-    private readonly app: App,
-    private readonly plugin: SteemitPlugin,
-  ) {}
+  private readonly client: Client;
 
-  async newPost() {
-    const { workspace } = this.app;
-    const activeView = workspace.getActiveViewOfType(MarkdownView);
-    if (activeView) {
-      try {
-        const fileContent = await this.app.vault.cachedRead(activeView.file);
-        const frontMatter = this.app.metadataCache.getFileCache(activeView.file)
-          ?.frontmatter as SteemitFrontMatter;
-        if (!frontMatter) {
-          new Notice('Please write frontmatter.');
-          return;
-        }
+  constructor(private readonly username: string, private readonly password: string) {
+    this.client = new Client('https://api.steemit.com');
+  }
 
-        const tags = parseFrontMatterTags(frontMatter)?.map(tag =>
-          tag.replace(/^#/, '').trim(),
-        );
-        const title = frontMatter?.title || activeView.file.basename;
-        const permlink =
-          frontMatter?.permlink ||
-          new Date()
-            .toISOString()
-            .replace(/[^\w]+/g, '')
-            .toLowerCase();
-
-        const { username, password } = this.plugin.settings || {};
-        if (!username || !password) {
-          throw Error('Your account is invalid.');
-        }
-
-        const category =
-          frontMatter?.category ||
-          this.plugin.settings?.category ||
-          tags?.[0] ||
-          'kr';
-
-        // Strip front-matter and HTML comments
-        const parsedContent = fileContent
-          .slice(frontMatter.position.end.offset)
-          .replace(/^<!--.*-->$/ms, '')
-          .trim();
-
-        const appName = this.plugin.settings?.appName || `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
-        const jsonMetadata: SteemitJsonMetadata = {
-          format: 'markdown',
-          app: appName,
-        };
-        if (tags && tags.length) {
-          jsonMetadata['tags'] = tags;
-        }
-        const data = {
-          parent_author: '', // Leave parent author empty
-          parent_permlink: category, // Main tag
-          author: username, // Author
-          permlink: permlink, // Permlink
-          title: title, // Title
-          body: parsedContent, // Body
-          json_metadata: JSON.stringify(jsonMetadata), // Json Meta
-        };
-
-        const client = new Client('https://api.steemit.com');
-        const response = await client.broadcast.comment(
-          data,
-          PrivateKey.fromString(password),
-        );
-
-        await this.app.vault.modify(
-          activeView.file,
-          fileContent.replace(/^(permlink:).*$/m, `$1 ${permlink}`),
-        );
-
-        new Notice(`Post published successfully! ${response.id}`);
-      } catch (ex: any) {
-        console.warn(ex);
-        new Notice(ex.toString());
-      }
-    } else {
-      const error = 'There is no editor found. Nothing will be published.';
-      console.warn(error);
-      new Notice(error.toString());
+  async getCommunities(observer: string) {
+    const response = await request({
+      url: this.client.address,
+      method: 'POST',
+      body: JSON.stringify({
+        id: 0,
+        jsonrpc: '2.0',
+        method: 'bridge.list_communities',
+        params: { observer, sort: 'rank' },
+      }),
+    });
+    const json = JSON.parse(response);
+    if ('error' in json) {
+      const error = (json as SteemitRPCError).error;
+      throw new Error(error.data ?? error.message);
     }
+    return (json as SteemitRPCCommunities).result;
+  }
+
+  async broadcast(post: SteemitPost) {
+    const tags = post.tags?.split(/\s|,/);
+    const category = post.category; // || tags?.[0] || 'kr';
+
+    const jsonMetadata: SteemitJsonMetadata = {
+      format: 'markdown',
+      app: post.appName ?? '',
+    };
+    if (tags && tags.length) {
+      jsonMetadata['tags'] = tags;
+    }
+    const data = {
+      parent_author: '', // Leave parent author empty
+      parent_permlink: category, // Main tag
+      author: this.username, // Author
+      permlink: post.permlink, // Permlink
+      title: post.title, // Title
+      body: post.body, // Body
+      json_metadata: JSON.stringify(jsonMetadata), // Json Meta
+    };
+
+    const privateKey = PrivateKey.fromString(this.password);
+    const response = await this.client.broadcast.comment(data, privateKey);
+    return response;
   }
 }
