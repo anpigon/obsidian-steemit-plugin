@@ -14,12 +14,23 @@ export default class SteemitPlugin extends Plugin {
     // this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
     //   new SteemitClient(this.app, this).newPost();
     // });
+    // this.addRibbonIcon('dice', 'Import from url', (evt: MouseEvent) => {
+    //   new SteemitClient(this.app, this).getPost();
+    // });
 
     this.addCommand({
-      id: 'obsidian-steemit',
+      id: 'obsidian-steemit-publish',
       name: 'Publish to Steemit',
       callback: () => {
         new SteemitClient(this.app, this).newPost();
+      },
+    });
+
+    this.addCommand({
+      id: 'obsidian-steemit-import-from-url',
+      name: 'Import from url',
+      callback: () => {
+        new SteemitClient(this.app, this).getPost();
       },
     });
 
