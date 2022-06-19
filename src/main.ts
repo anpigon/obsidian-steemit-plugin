@@ -17,9 +17,9 @@ export default class SteemitPlugin extends Plugin {
     // this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
     //   this.publishSteemit();
     // });
-    this.addRibbonIcon('dice', 'Import from url', (evt: MouseEvent) => {
-      this.scrapSteemit();
-    });
+    // this.addRibbonIcon('dice', 'Import from url', (evt: MouseEvent) => {
+    //   this.scrapSteemit();
+    // });
 
     this.addCommand({
       id: 'obsidian-steemit-publish',
