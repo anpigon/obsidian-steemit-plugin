@@ -12,6 +12,10 @@ export class SteemitClient {
     this.client = new Client('https://api.steemit.com');
   }
 
+  getMyCommunities() {
+    return this.getCommunities(this.username);
+  }
+
   async getCommunities(observer: string) {
     const response = await request({
       url: this.client.address,
@@ -37,7 +41,7 @@ export class SteemitClient {
       app: post.appName ?? '',
     };
 
-    const tags = post.tags?.split(/\s|,/);
+    const tags = post.tags?.split(/\s|,/).map(tag => tag.trim());
     if (tags && tags.length) {
       jsonMetadata['tags'] = tags;
     }
