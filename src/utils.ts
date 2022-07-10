@@ -60,10 +60,11 @@ export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<
       .join(' ') ?? '';
 
   const permlink = frontMatter?.permlink || makeDefaultPermlink();
-
-  const category = frontMatter?.category;
+  const category = frontMatter?.category || plugin.settings?.category || '';
+  const appName = plugin.settings?.appName || `${plugin.manifest.id}/${plugin.manifest.version}`;
 
   return {
+    appName,
     category,
     permlink,
     title,
@@ -77,4 +78,26 @@ function makeDefaultPermlink() {
     .toISOString()
     .replace(/[^\w]+/g, '')
     .toLowerCase();
+}
+
+export function addDataToFrontMater(frontmatter: SteemitFrontMatter, data: SteemitPost) {
+  return {
+    title: data.title ?? frontmatter.title ?? '',
+    permlink: data.permlink ?? frontmatter.permlink ?? '',
+    tags: data.tags.split(/\s|,/).map(tag => tag.trim()) ?? frontmatter.tags ?? [],
+    category: data.category ?? frontmatter.category ?? '',
+  } as SteemitFrontMatter;
+}
+
+export function frontMaterToString(frontmatter: SteemitFrontMatter) {
+  const frontMaterString =  Object.entries(frontmatter)
+    .filter(([key]) => key !== 'position')
+    .map(([key, val]) => {
+      if(key === 'tags' && Array.isArray(val)) {
+        return `tags: ${val.join(' ')}`;
+      }
+      return `${key}: ${val ?? ''}`;
+    })
+    .join('\n');
+  return `---\n${frontMaterString}\n---`;
 }
