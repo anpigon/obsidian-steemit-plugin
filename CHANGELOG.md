@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.0...0.1.1) (2022-07-10)
+
+
+### Features
+
+* add addDataToFrontMater and frontMaterToString in utils ([b0f3198](https://github.com/anpigon/obsidian-steemit-plugin/commit/b0f3198f666917fcfaa3db1d584cbd050c546984))
+* add function frontMaterToString in utils ([2761771](https://github.com/anpigon/obsidian-steemit-plugin/commit/27617711fe18cc7ef51b584276ccecbadcb4a547))
+
+
+### Bug Fixes
+
+* trim when parsing tag information in the newPost function of the SteemitClient class ([b97b84d](https://github.com/anpigon/obsidian-steemit-plugin/commit/b97b84dc171fb7f081f42e775e2f08a42decfe41))
+
 ## [0.1.0](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.0.9...0.1.0) (2022-06-19)
 
 ### [0.0.9](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.0.8...0.0.9) (2022-06-19)
