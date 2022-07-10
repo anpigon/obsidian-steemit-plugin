@@ -2,6 +2,8 @@ import { MarkdownView, parseFrontMatterTags } from 'obsidian';
 import SteemitPlugin from './main';
 import { SteemitFrontMatter, SteemitPost } from './types';
 
+export const frontmatterRegex = /^---\n(((?!---)(.|\n)*?)\n)?---(\n|$)/;
+
 export function toStringFrontMatter(frontMatter: SteemitFrontMatter): string {
   const frontMatterString = Object.entries(frontMatter)
     .filter(([key]) => key !== 'position')
@@ -100,4 +102,9 @@ export function frontMaterToString(frontmatter: SteemitFrontMatter) {
     })
     .join('\n');
   return `---\n${frontMaterString}\n---`;
+}
+
+
+export function stripFrontmatter(content: string) {
+  return content.replace(frontmatterRegex, '');
 }
