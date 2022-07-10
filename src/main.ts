@@ -2,9 +2,15 @@ import { MarkdownView, Notice, Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
 import { SubmitConfirmModal } from './submit_confirm_modal';
-import { SteemitPluginSettings } from './types';
+import { SteemitFrontMatter, SteemitPluginSettings, SteemitPost } from './types';
 
-import { addFrontMatter, toStringFrontMatter, getPostDataFromActiveView } from './utils';
+import {
+  addFrontMatter,
+  toStringFrontMatter,
+  addDataToFrontMater,
+  frontMaterToString,
+  stripFrontmatter,
+} from './utils';
 
 export default class SteemitPlugin extends Plugin {
   settings?: SteemitPluginSettings;
@@ -95,39 +101,10 @@ export default class SteemitPlugin extends Plugin {
         throw new Error('There is no editor view found.');
       }
 
-      // check username and password
-      const { username, password } = this.settings || {};
-      if (!username || !password) {
-        throw Error('Your account is invalid.');
-      }
-
-      // get data on ActiveView
-      const data = await getPostDataFromActiveView(this);
-      const appName = this.settings?.appName || `${this.manifest.id}/${this.manifest.version}`;
-      data.appName = appName;
-      data.category = data.category || this.settings?.category || '';
-
-      // create steemit client
-      const client = new SteemitClient(username, password);
-
-      // get my community categories
-      const categories = (await client.getCommunities(username)).filter(c => c.context.subscribed);
-      console.log(categories)
-
-      new SubmitConfirmModal(this.app, data, categories, async result => {
+      // open confirm modal popup
+      new SubmitConfirmModal(this, async (result, response) => {
         try {
-          const response = await client.newPost(data);
-
-          const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-          if (activeView) {
-            const fileContent = await this.app.vault.cachedRead(activeView.file);
-            const newContent = fileContent
-              .replace(/^(permlink:).*$/m, `$1 ${result.permlink}`)
-              .replace(/^(title:).*$/m, `$1 ${result.title}`)
-              .replace(/^(category:).*$/m, `$1 ${result.category}`)
-              .replace(/^(tags?:).*$/m, `$1 ${result.tags}`);
-            await this.app.vault.modify(activeView.file, newContent);
-          }
+          await this.updateFileContent(result);
 
           new Notice(`Post published successfully! ${response.id}`);
         } catch (ex: any) {
@@ -137,6 +114,22 @@ export default class SteemitPlugin extends Plugin {
       }).open();
     } catch (e: any) {
       new Notice(e.toString());
+    }
+  }
+
+  async updateFileContent(result: SteemitPost) {
+    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (activeView) {
+      const fileContent = await this.app.vault.cachedRead(activeView.file);
+      const frontMatter = (this.app.metadataCache.getFileCache(activeView.file)?.frontmatter ||
+        {}) as SteemitFrontMatter;
+
+      const contentBody = stripFrontmatter(fileContent);
+      const newFrontMatter = frontMaterToString(addDataToFrontMater(frontMatter, result));
+
+      const newFileContent = `${newFrontMatter}\n${contentBody}`;
+
+      await this.app.vault.modify(activeView.file, newFileContent);
     }
   }
 }

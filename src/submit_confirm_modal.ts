@@ -1,22 +1,42 @@
-import { App, Modal, Setting, TextComponent, DropdownComponent } from 'obsidian';
-import { SteemitPost, SteemitRPCCommunities } from './types';
+import { TransactionConfirmation } from 'dsteem/lib/steem/transaction';
+import { Modal, Setting, TextComponent, DropdownComponent, Notice } from 'obsidian';
+
+import SteemitPlugin from './main';
+import { SteemitClient } from './steemit-client';
+import { SteemitPost } from './types';
+import { getPostDataFromActiveView } from './utils';
 
 export class SubmitConfirmModal extends Modal {
+  private client: SteemitClient;
+
   constructor(
-    app: App,
-    private data: SteemitPost,
-    private categories: SteemitRPCCommunities['result'],
-    private readonly callback: (data: SteemitPost) => void,
+    private plugin: SteemitPlugin,
+    private readonly callback?: (data: SteemitPost, response: TransactionConfirmation) => void,
   ) {
-    super(app);
+    super(plugin.app);
+
+    // check username and password
+    const { username, password } = this.plugin.settings ?? {};
+    if (!this.plugin.settings || !username || !password) {
+      throw Error('Your steemit username or password is invalid.');
+    }
+    this.client = new SteemitClient(username, password);
   }
 
-  async handleCallback() {
-    if(!this.data.category || this.data.category === '0') {
-      this.data.category = '';
+  async handleSubmit(data: SteemitPost) {
+    try {
+      if (!data.category || data.category === '0') {
+        data.category = '';
+      }
+      this.close();
+
+      const response = await this.client.newPost(data);
+
+      if (this.callback) this.callback(data, response);
+    } catch (ex: any) {
+      console.warn(ex);
+      new Notice(ex.toString());
     }
-    this.close();
-    this.callback(this.data);
   }
 
   createContainer(containerEl: HTMLElement, label?: string) {
@@ -30,49 +50,59 @@ export class SubmitConfirmModal extends Modal {
     return container;
   }
 
-  onOpen() {
+  async onOpen() {
     const { contentEl } = this;
 
     contentEl.createEl('h2', { text: 'Publish to steemit' });
+    const loading: HTMLDivElement = contentEl.createDiv({
+      text: 'Waiting...',
+      cls: 'steem-plugin__loading',
+    });
+
+    const data = await getPostDataFromActiveView(this.plugin);
+
+    // get my community categories
+    const categories = (await this.client.getMyCommunities()).filter(c => c.context.subscribed);
+    loading.remove();
 
     const categoryContainer = this.createContainer(contentEl);
     const categoryComponent = new DropdownComponent(categoryContainer);
     categoryComponent.addOption('0', 'My Blog');
     categoryComponent.addOptions(
-      this.categories.reduce<{ [k in string]: string }>((a, b) => {
+      categories.reduce<{ [k in string]: string }>((a, b) => {
         a[b.name] = b.title;
         return a;
       }, {}),
     );
-    categoryComponent.setValue(this.data.category || '0');
-    categoryComponent.onChange(value => (this.data.category = value));
+    categoryComponent.setValue(data.category || '0');
+    categoryComponent.onChange(value => (data.category = value));
 
     const permlinkContainer = this.createContainer(contentEl, 'permlink');
     const permlinkComponent = new TextComponent(contentEl);
     permlinkComponent.inputEl.className = 'steem-plugin__w80';
-    permlinkComponent.setValue(this.data.permlink ?? '');
-    permlinkComponent.onChange(value => (this.data.permlink = value));
+    permlinkComponent.setValue(data.permlink ?? '');
+    permlinkComponent.onChange(value => (data.permlink = value));
     permlinkContainer.appendChild(permlinkComponent.inputEl);
 
     const titleContainer = this.createContainer(contentEl, 'title');
     const titleComponent = new TextComponent(contentEl);
     titleComponent.inputEl.className = 'steem-plugin__w80';
-    titleComponent.setValue(this.data.title ?? '');
-    titleComponent.onChange(value => (this.data.title = value));
+    titleComponent.setValue(data.title ?? '');
+    titleComponent.onChange(value => (data.title = value));
     titleContainer.appendChild(titleComponent.inputEl);
 
     const tagContainer = this.createContainer(contentEl, 'tag');
     const tagComponent = new TextComponent(contentEl);
     tagComponent.inputEl.className = 'steem-plugin__w80';
-    tagComponent.setValue(this.data.tags ?? '');
-    tagComponent.onChange(value => (this.data.tags = value));
+    tagComponent.setValue(data.tags ?? '');
+    tagComponent.onChange(value => (data.tags = value));
     tagContainer.appendChild(tagComponent.inputEl);
 
     const appNameContainer = this.createContainer(contentEl, 'appName');
     const appNameComponent = new TextComponent(contentEl);
     appNameComponent.inputEl.className = 'steem-plugin__w80';
     appNameComponent.setDisabled(true);
-    appNameComponent.setValue(this.data.appName ?? '');
+    appNameComponent.setValue(data.appName ?? '');
     appNameContainer.appendChild(appNameComponent.inputEl);
 
     // buttons
@@ -82,7 +112,7 @@ export class SubmitConfirmModal extends Modal {
         btn
           .setButtonText('Publish')
           .setCta()
-          .onClick(() => this.handleCallback()),
+          .onClick(() => this.handleSubmit(data)),
       );
   }
 

@@ -106,5 +106,5 @@ export function frontMaterToString(frontmatter: SteemitFrontMatter) {
 
 
 export function stripFrontmatter(content: string) {
-  return content.replace(frontmatterRegex, '');
+  return content.trimStart().replace(frontmatterRegex, '');
 }
