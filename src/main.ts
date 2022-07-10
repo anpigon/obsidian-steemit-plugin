@@ -14,9 +14,9 @@ export default class SteemitPlugin extends Plugin {
 
     await this.loadSettings();
 
-    // this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
-    //   this.publishSteemit();
-    // });
+    this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
+      this.publishSteemit();
+    });
     // this.addRibbonIcon('dice', 'Import from url', (evt: MouseEvent) => {
     //   this.scrapSteemit();
     // });
@@ -112,6 +112,7 @@ export default class SteemitPlugin extends Plugin {
 
       // get my community categories
       const categories = (await client.getCommunities(username)).filter(c => c.context.subscribed);
+      console.log(categories)
 
       new SubmitConfirmModal(this.app, data, categories, async result => {
         try {

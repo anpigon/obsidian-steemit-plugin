@@ -45,15 +45,12 @@ export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<
   const fileContent = await plugin.app.vault.cachedRead(activeView.file);
   const frontMatter = plugin.app.metadataCache.getFileCache(activeView.file)
     ?.frontmatter as SteemitFrontMatter;
-  if (!frontMatter) {
-    throw new Error('Please write frontmatter.');
-  }
 
   const title = frontMatter?.title || activeView.file.basename;
 
   // Strip front-matter and HTML comments
   const body = fileContent
-    .slice(frontMatter.position.end.offset)
+    .slice(frontMatter?.position?.end?.offset ?? 0)
     .replace(/^<!--.*-->$/ms, '')
     .trim();
 
