@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.2](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.1...0.1.2) (2022-07-11)
+
+
+### Bug Fixes
+
+* remove ribbon icon button ([7e5e4bb](https://github.com/anpigon/obsidian-steemit-plugin/commit/7e5e4bb8dc6d5f8dfb738849eb384d76e2932778))
+
 ### [0.1.1](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.0...0.1.1) (2022-07-10)
 
 
