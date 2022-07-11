@@ -20,9 +20,9 @@ export default class SteemitPlugin extends Plugin {
 
     await this.loadSettings();
 
-    this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
-      this.publishSteemit();
-    });
+    // this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
+    //   this.publishSteemit();
+    // });
     // this.addRibbonIcon('dice', 'Import from url', (evt: MouseEvent) => {
     //   this.scrapSteemit();
     // });
