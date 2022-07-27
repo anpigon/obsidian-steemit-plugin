@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.2...0.1.3) (2022-07-27)
+
+
+### Features
+
+* add function parseFrontMatter in utils ([bcda72d](https://github.com/anpigon/obsidian-steemit-plugin/commit/bcda72df1436eb6ae6c4b159ef6b588c98acf097))
+
 ### [0.1.2](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.1...0.1.2) (2022-07-11)
 
 
