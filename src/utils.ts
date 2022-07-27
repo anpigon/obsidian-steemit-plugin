@@ -1,8 +1,21 @@
-import { MarkdownView, parseFrontMatterTags } from 'obsidian';
+import { MarkdownView, parseFrontMatterTags, TFile } from 'obsidian';
 import SteemitPlugin from './main';
 import { SteemitFrontMatter, SteemitPost } from './types';
 
-export const frontmatterRegex = /^---\n(((?!---)(.|\n)*?)\n)?---(\n|$)/;
+export const frontmatterRegex = /^---\n(?:((?!---)(.|\n)*?)\n)?---(\n|$)/;
+
+export function parseFrontMatter(content: string): SteemitFrontMatter | null {
+  if (!frontmatterRegex.test(content)) {
+    return null;
+  }
+  const extractedFrontMatter = frontmatterRegex.exec(content);
+  const result =
+    extractedFrontMatter?.[1].split('\n').reduce<SteemitFrontMatter>((acc, x) => {
+      const [key, value] = x.split(':');
+      return (acc[key?.trim()] = value?.trim()), acc;
+    }, {} as SteemitFrontMatter) ?? null;
+  return result;
+}
 
 export function toStringFrontMatter(frontMatter: SteemitFrontMatter): string {
   const frontMatterString = Object.entries(frontMatter)
@@ -45,8 +58,9 @@ export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<
   }
 
   const fileContent = await plugin.app.vault.cachedRead(activeView.file);
-  const frontMatter = plugin.app.metadataCache.getFileCache(activeView.file)
+  const frontMatterCache = plugin.app.metadataCache.getFileCache(activeView.file)
     ?.frontmatter as SteemitFrontMatter;
+  const frontMatter = frontMatterCache ?? parseFrontMatter(fileContent);
 
   const title = frontMatter?.title || activeView.file.basename;
 
@@ -92,10 +106,10 @@ export function addDataToFrontMater(frontmatter: SteemitFrontMatter, data: Steem
 }
 
 export function frontMaterToString(frontmatter: SteemitFrontMatter) {
-  const frontMaterString =  Object.entries(frontmatter)
+  const frontMaterString = Object.entries(frontmatter)
     .filter(([key]) => key !== 'position')
     .map(([key, val]) => {
-      if(key === 'tags' && Array.isArray(val)) {
+      if (key === 'tags' && Array.isArray(val)) {
         return `tags: ${val.join(' ')}`;
       }
       return `${key}: ${val ?? ''}`;
@@ -103,7 +117,6 @@ export function frontMaterToString(frontmatter: SteemitFrontMatter) {
     .join('\n');
   return `---\n${frontMaterString}\n---`;
 }
-
 
 export function stripFrontmatter(content: string) {
   return content.trimStart().replace(frontmatterRegex, '');
