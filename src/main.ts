@@ -1,18 +1,12 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { MarkdownView, Notice, Plugin } from 'obsidian';
+
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
 import { SubmitConfirmModal } from './submit_confirm_modal';
-import { SteemitFrontMatter, SteemitPluginSettings, SteemitPost } from './types';
-
-import {
-  addFrontMatter,
-  toStringFrontMatter,
-  addDataToFrontMater,
-  frontMaterToString,
-  stripFrontmatter,
-} from './utils';
+import { SteemitPluginSettings, SteemitPost } from './types';
+import { toStringFrontMatter, stripFrontmatter } from './utils';
 
 export default class SteemitPlugin extends Plugin {
   settings?: SteemitPluginSettings;
@@ -74,14 +68,15 @@ export default class SteemitPlugin extends Plugin {
       const client = new SteemitClient('', '');
       const response = await client.getPost(username, permlink);
       const jsonMetadata = JSON.parse(response.json_metadata || '{}');
-      const newFrontMatter = addFrontMatter(frontMatter, {
+      const newFrontMatter = {
+        ...frontMatter,
         category: response.category,
         title: response.title,
         permlink: response.permlink,
         tags: jsonMetadata.tags,
-      });
+      };
       const frontMatterString = toStringFrontMatter(newFrontMatter);
-      const fileContent = `${frontMatterString}\n${response.body}`;
+      const fileContent = `---\n${frontMatterString}\n---\n${response.body}`;
       await this.app.vault.modify(activeView.file, fileContent);
     } catch (ex: any) {
       console.warn(ex);
@@ -116,14 +111,17 @@ export default class SteemitPlugin extends Plugin {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (activeView) {
       const fileContent = await this.app.vault.cachedRead(activeView.file);
-      const frontMatter = (this.app.metadataCache.getFileCache(activeView.file)?.frontmatter ||
-        {}) as SteemitFrontMatter;
-
-      const contentBody = stripFrontmatter(fileContent);
-      const newFrontMatter = frontMaterToString(addDataToFrontMater(frontMatter, result));
-
-      const newFileContent = `${newFrontMatter}\n${contentBody}`;
-
+      const frontMatterCache = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
+      const newFrontMatter = {
+        ...frontMatterCache,
+        category: result.category,
+        title: result.title,
+        permlink: result.permlink,
+        tags: result.tags,
+      };
+      const frontMatterString = toStringFrontMatter(newFrontMatter);
+      const content = stripFrontmatter(fileContent);
+      const newFileContent = `---\n${frontMatterString}\n---\n${content}`;
       await this.app.vault.modify(activeView.file, newFileContent);
     }
   }

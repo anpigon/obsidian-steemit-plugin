@@ -1,4 +1,4 @@
-import { MarkdownView, parseFrontMatterTags, TFile } from 'obsidian';
+import { FrontMatterCache, MarkdownView, parseFrontMatterTags } from 'obsidian';
 import SteemitPlugin from './main';
 import { SteemitFrontMatter, SteemitPost } from './types';
 
@@ -17,16 +17,20 @@ export function parseFrontMatter(content: string): SteemitFrontMatter | null {
   return result;
 }
 
-export function toStringFrontMatter(frontMatter: SteemitFrontMatter): string {
-  const frontMatterString = Object.entries(frontMatter)
+export function toStringFrontMatter(frontMatter: Record<string, unknown>): string {
+  return Object.entries(frontMatter)
     .filter(([key]) => key !== 'position')
-    .map(([key, value]) => `${key}: ${value ?? ''}`)
+    .map(([key, value]) => {
+      if(typeof value === 'string' && (/\[|\]/).test(value)) {
+        return `${key}: "${value}"`;
+      }
+      return `${key}: ${value ?? ''}`;
+    })
     .join('\n');
-  return `---\n${frontMatterString}\n---`;
 }
 
 export function addFrontMatter(
-  oldFrontMatter: SteemitFrontMatter,
+  frontMatter: FrontMatterCache,
   {
     category,
     title,
@@ -34,7 +38,7 @@ export function addFrontMatter(
     tags,
   }: Partial<Pick<SteemitFrontMatter, 'category' | 'title' | 'permlink' | 'tags'>>,
 ): SteemitFrontMatter {
-  const newFrontMatter = Object.assign({}, oldFrontMatter);
+  const newFrontMatter = Object.assign({}, frontMatter);
 
   const frontMatterKeysForSteemit = ['category', 'permlink', 'title', 'tags'];
   frontMatterKeysForSteemit.forEach(key => {
