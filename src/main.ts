@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MarkdownView, Notice, Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
@@ -19,13 +21,6 @@ export default class SteemitPlugin extends Plugin {
     console.info('loading obsidian-steemit plugin');
 
     await this.loadSettings();
-
-    // this.addRibbonIcon('dice', 'Publish to Steemit', (evt: MouseEvent) => {
-    //   this.publishSteemit();
-    // });
-    // this.addRibbonIcon('dice', 'Import from url', (evt: MouseEvent) => {
-    //   this.scrapSteemit();
-    // });
 
     this.addCommand({
       id: 'obsidian-steemit-publish',
