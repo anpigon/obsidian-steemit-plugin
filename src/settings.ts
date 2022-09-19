@@ -31,7 +31,7 @@ export class SteemitSettingTab extends PluginSettingTab {
       .setDesc('Enter your Steemit username')
       .addText(text => {
         text
-          .setPlaceholder('anpigon')
+          .setPlaceholder('Your username')
           .setValue(this.plugin.settings?.username ?? '')
           .onChange(async value => {
             this.plugin.settings!.username = value;
@@ -59,7 +59,7 @@ export class SteemitSettingTab extends PluginSettingTab {
       .setDesc('Enter the category you want to post.')
       .addText(text => {
         text
-          .setPlaceholder('hive-101145')
+          .setPlaceholder('ex. hive-101145')
           .setValue(this.plugin.settings?.category ?? '')
           .onChange(async value => {
             this.plugin.settings!.category = value;
