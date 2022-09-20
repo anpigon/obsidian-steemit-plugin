@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 import { TransactionConfirmation } from 'dsteem/lib/steem/transaction';
 import { Modal, Setting, TextComponent, DropdownComponent, Notice } from 'obsidian';
 
@@ -11,7 +13,7 @@ export class SubmitConfirmModal extends Modal {
 
   constructor(
     private plugin: SteemitPlugin,
-    private readonly callback?: (data: SteemitPost, response: TransactionConfirmation) => void,
+    private readonly callback: (data: SteemitPost, response: TransactionConfirmation) => void,
   ) {
     super(plugin.app);
 
@@ -31,7 +33,7 @@ export class SubmitConfirmModal extends Modal {
       this.close();
 
       const response = await this.client.newPost(data);
-
+      
       if (this.callback) this.callback(data, response);
     } catch (ex: any) {
       console.warn(ex);
