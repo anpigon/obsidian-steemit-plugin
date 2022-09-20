@@ -17,18 +17,6 @@ export function parseFrontMatter(content: string): SteemitFrontMatter | null {
   return result;
 }
 
-export function toStringFrontMatter(frontMatter: Record<string, unknown>): string {
-  return Object.entries(frontMatter)
-    .filter(([key]) => key !== 'position')
-    .map(([key, value]) => {
-      if(typeof value === 'string' && (/\[|\]/).test(value)) {
-        return `${key}: "${value}"`;
-      }
-      return `${key}: ${value ?? ''}`;
-    })
-    .join('\n');
-}
-
 export function addFrontMatter(
   frontMatter: FrontMatterCache,
   {
@@ -107,19 +95,6 @@ export function addDataToFrontMater(frontmatter: SteemitFrontMatter, data: Steem
     tags: data.tags.split(/\s|,/).map(tag => tag.trim()) ?? frontmatter.tags ?? [],
     category: data.category ?? frontmatter.category ?? '',
   } as SteemitFrontMatter;
-}
-
-export function frontMaterToString(frontmatter: SteemitFrontMatter) {
-  const frontMaterString = Object.entries(frontmatter)
-    .filter(([key]) => key !== 'position')
-    .map(([key, val]) => {
-      if (key === 'tags' && Array.isArray(val)) {
-        return `tags: ${val.join(' ')}`;
-      }
-      return `${key}: ${val ?? ''}`;
-    })
-    .join('\n');
-  return `---\n${frontMaterString}\n---`;
 }
 
 export function stripFrontmatter(content: string) {
