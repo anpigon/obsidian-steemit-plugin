@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.6](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.5...0.1.6) (2022-09-20)
+
+
+### Bug Fixes
+
+* Issue of erasing existing Yaml data after posting ([70118f5](https://github.com/anpigon/obsidian-steemit-plugin/commit/70118f5311600251e143e8b650ed5e1889032608))
+
 ### [0.1.5](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.4...0.1.5) (2022-07-27)
 
 ### [0.1.4](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.3...0.1.4) (2022-07-27)
