@@ -9,7 +9,11 @@ import { SteemitPluginSettings, SteemitPost } from './types';
 import { stripFrontmatter } from './utils';
 
 export default class SteemitPlugin extends Plugin {
-  settings?: SteemitPluginSettings;
+  #settings?: SteemitPluginSettings;
+
+  get settings() {
+    return this.#settings;
+  }
 
   async onload() {
     console.info('loading obsidian-steemit plugin');
@@ -37,11 +41,11 @@ export default class SteemitPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.#settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
   async saveSettings() {
-    await this.saveData(this.settings);
+    await this.saveData(this.#settings);
   }
 
   async scrapSteemit() {
@@ -57,7 +61,7 @@ export default class SteemitPlugin extends Plugin {
         throw new Error('Front Matter not found. expect a url.');
       }
 
-      let username = this.settings?.username ?? '';
+      let username = this.#settings?.username ?? '';
       let permlink = frontMatter.permlink;
       const url = frontMatter.url;
       if (url) {

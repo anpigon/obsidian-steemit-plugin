@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import SteemitPlugin from './main';
 import { SteemitPluginSettings } from './types';
@@ -19,6 +20,13 @@ export class SteemitSettingTab extends PluginSettingTab {
     this.defaultAppName = `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
   }
 
+  async saveSettings(name: string, value: string) {
+    if (this.plugin.settings) {
+      (this.plugin.settings as any)[name] = value;
+      await this.plugin.saveSettings();
+    }
+  }
+
   display(): void {
     const { containerEl } = this;
 
@@ -34,23 +42,19 @@ export class SteemitSettingTab extends PluginSettingTab {
           .setPlaceholder('Your username')
           .setValue(this.plugin.settings?.username ?? '')
           .onChange(async value => {
-            this.plugin.settings!.username = value;
-            await this.plugin.saveSettings();
+            this.saveSettings('username', value);
           });
       });
 
     new Setting(containerEl)
       .setName('Password')
-      .setDesc(
-        'Enter your Steemit password (your Steemit privateKey for post).',
-      )
+      .setDesc('Enter your Steemit password (your Steemit privateKey for post).')
       .addText(text => {
         text
           .setPlaceholder('Your password')
           .setValue(this.plugin.settings?.password ?? '')
           .onChange(async value => {
-            this.plugin.settings!.password = value;
-            await this.plugin.saveSettings();
+            this.saveSettings('password', value);
           });
       });
 
@@ -62,8 +66,7 @@ export class SteemitSettingTab extends PluginSettingTab {
           .setPlaceholder('ex. hive-101145')
           .setValue(this.plugin.settings?.category ?? '')
           .onChange(async value => {
-            this.plugin.settings!.category = value;
-            await this.plugin.saveSettings();
+            this.saveSettings('category', value);
           });
       });
 
@@ -75,8 +78,7 @@ export class SteemitSettingTab extends PluginSettingTab {
           .setPlaceholder(this.defaultAppName)
           .setValue(this.plugin.settings?.appName || this.defaultAppName)
           .onChange(async value => {
-            this.plugin.settings!.appName = value;
-            await this.plugin.saveSettings();
+            this.saveSettings('appName', value);
           });
       });
   }
