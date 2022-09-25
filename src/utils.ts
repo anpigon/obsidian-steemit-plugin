@@ -57,10 +57,9 @@ export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<
   const title = frontMatter?.title || activeView.file.basename;
 
   // Strip front-matter and HTML comments
-  const body = fileContent
-    .slice(frontMatter?.position?.end?.offset ?? 0)
-    .replace(/^<!--.*-->$/ms, '')
-    .trim();
+  const body = removeObsidianComments(
+    fileContent.slice(frontMatter?.position?.end?.offset ?? 0).trim(),
+  );
 
   const tags =
     parseFrontMatterTags(frontMatter)
@@ -99,4 +98,8 @@ export function addDataToFrontMater(frontmatter: SteemitFrontMatter, data: Steem
 
 export function stripFrontmatter(content: string) {
   return content.trimStart().replace(frontmatterRegex, '');
+}
+
+export function removeObsidianComments(content: string) {
+  return content.replace(/^\n?%%(.+?)%%\n?$/gms, '');
 }
