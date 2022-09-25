@@ -57,9 +57,7 @@ export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<
   const title = frontMatter?.title || activeView.file.basename;
 
   // Strip front-matter and HTML comments
-  const body = removeObsidianComments(
-    fileContent.slice(frontMatter?.position?.end?.offset ?? 0).trim(),
-  );
+  const body = removeObsidianComments(stripFrontmatter(fileContent));
 
   const tags =
     parseFrontMatterTags(frontMatter)

@@ -131,7 +131,6 @@ export default class SteemitPlugin extends Plugin {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (activeView) {
       const { file } = activeView;
-      const content = stripFrontmatter(await this.app.vault.cachedRead(file));
       const frontMatter = {
         ...this.app.metadataCache.getFileCache(file)?.frontmatter,
         category: steemitPost.category,
@@ -140,6 +139,7 @@ export default class SteemitPlugin extends Plugin {
         tags: steemitPost.tags,
       };
       delete frontMatter['position'];
+      const content = stripFrontmatter(await this.app.vault.cachedRead(file));
       await this.app.vault.modify(file, `---\n${stringifyYaml(frontMatter)}---\n${content}`);
     }
   }
