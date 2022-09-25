@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.6...0.1.7) (2022-09-25)
+
+
+### Features
+
+* removeObsidianComments function ([f7e156b](https://github.com/anpigon/obsidian-steemit-plugin/commit/f7e156bec245a4dfde1e63b942376d83afc9b130))
+
 ### [0.1.6](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.5...0.1.6) (2022-09-20)
 
 
