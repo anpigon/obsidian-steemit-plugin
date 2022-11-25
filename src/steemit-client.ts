@@ -14,7 +14,7 @@ import { CommentOperation } from 'dsteem/lib/steem/operation';
 export class SteemitClient {
   private readonly client: Client;
 
-  constructor(private readonly username: string, private readonly password: string) {
+  constructor(private readonly username: string = '', private readonly password: string = '') {
     this.client = new Client('https://api.steemit.com');
   }
 

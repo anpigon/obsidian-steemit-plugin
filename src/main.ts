@@ -50,38 +50,24 @@ export default class SteemitPlugin extends Plugin {
 
   async scrapSteemit() {
     try {
-      const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-      if (!activeView) {
-        throw new Error('There is no editor view found.');
-      }
-
-      const { file } = activeView;
-      const frontMatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-      if (!frontMatter || !frontMatter.url) {
+      const { file } = this.getActiveView();
+      const cachedFrontmatter = this.getCachedFrontmatter(file);
+      const url = cachedFrontmatter?.url;
+      if (!url) {
         throw new Error('Front Matter not found. expect a url.');
       }
-
-      let username = this.#settings?.username ?? '';
-      let permlink = frontMatter.permlink;
-      const url = frontMatter.url;
-      if (url) {
-        const urls = url.replace(/\?.*$/, '').split('/');
-        permlink = urls.pop();
-        username = urls.pop()?.replace(/^@/, '');
-      }
-
-      const client = new SteemitClient('', '');
-      const response = await client.getPost(username, permlink);
-      const jsonMetadata = JSON.parse(response.json_metadata || '{}');
-      const newFrontMatter = {
-        ...this.app.metadataCache.getFileCache(file)?.frontmatter,
-        category: response.category,
-        title: response.title,
-        permlink: response.permlink,
-        tags: jsonMetadata.tags,
-      };
-      const fileContent = `---\n${stringifyYaml(newFrontMatter)}---\n${response.body}`;
-      await this.app.vault.modify(activeView.file, fileContent);
+      const [, , username, permlink] = new URL(cachedFrontmatter.url).pathname.split('/');
+      const res = await new SteemitClient().getPost(username.slice(1), permlink);
+      const metadata = JSON.parse(res.json_metadata || '{}');
+      const newFrontmatter = stringifyYaml({
+        ...cachedFrontmatter,
+        category: res.category,
+        title: res.title,
+        permlink: res.permlink,
+        tags: metadata.tags,
+      });
+      const fileContent = `---\n${newFrontmatter}---\n${res.body}`;
+      await this.app.vault.modify(file, fileContent);
     } catch (ex: any) {
       console.warn(ex);
       new Notice(ex.toString());
@@ -107,11 +93,14 @@ export default class SteemitPlugin extends Plugin {
     return activeView;
   }
 
+  getCachedFrontmatter(file: TFile) {
+    const frontmatter = { ...this.app.metadataCache.getFileCache(file)?.frontmatter };
+    delete frontmatter['position'];
+    return frontmatter as Record<string, string>;
+  }
+
   async publishSteemit() {
     try {
-      const activeView = this.getActiveView();
-      this.validateFile(activeView.file);
-
       // open confirm modal popup
       new SubmitConfirmModal(this, async (result, response) => {
         try {
@@ -128,19 +117,15 @@ export default class SteemitPlugin extends Plugin {
   }
 
   async updateFileContent(steemitPost: SteemitPost) {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (activeView) {
-      const { file } = activeView;
-      const frontMatter = {
-        ...this.app.metadataCache.getFileCache(file)?.frontmatter,
-        category: steemitPost.category,
-        title: steemitPost.title,
-        permlink: steemitPost.permlink,
-        tags: steemitPost.tags,
-      };
-      delete frontMatter['position'];
-      const content = stripFrontmatter(await this.app.vault.cachedRead(file));
-      await this.app.vault.modify(file, `---\n${stringifyYaml(frontMatter)}---\n${content}`);
-    }
+    const { file } = this.getActiveView();
+    const frontMatter = {
+      ...this.getCachedFrontmatter(file),
+      category: steemitPost.category || 'steemit',
+      title: steemitPost.title,
+      permlink: steemitPost.permlink,
+      tags: steemitPost.tags,
+    };
+    const content = stripFrontmatter(await this.app.vault.cachedRead(file));
+    await this.app.vault.modify(file, `---\n${stringifyYaml(frontMatter)}---\n${content}`);
   }
 }
