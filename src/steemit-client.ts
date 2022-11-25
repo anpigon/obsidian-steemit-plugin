@@ -11,6 +11,8 @@ import {
 } from './types';
 import { CommentOperation } from 'dsteem/lib/steem/operation';
 
+const memcached: Record<string, object> = {};
+
 export class SteemitClient {
   private readonly client: Client;
 
@@ -18,13 +20,24 @@ export class SteemitClient {
     this.client = new Client('https://api.steemit.com');
   }
 
-  async getMyCommunities() {
-    return (await this.getAllSubscriptions(this.username))?.map(([name, title, role, context]) => ({
-      name,
-      title,
-      role,
-      context,
-    }));
+  getMyCommunities() {
+    // eslint-disable-next-line no-console
+    console.log(memcached);
+    const key = `getMyCommunities_${this.username}`;
+    if (memcached[key]) {
+      return memcached[key];
+    }
+    const response = this.getAllSubscriptions(this.username).then(r => {
+      const result = r?.map(([name, title, role, context]) => ({
+        name,
+        title,
+        role,
+        context,
+      }));
+      memcached[key] = result;
+      return result;
+    });
+    return response;
   }
 
   async getAllSubscriptions(account: string) {
