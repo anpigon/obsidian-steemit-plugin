@@ -78,3 +78,9 @@ export interface SteemitRPCCommunities {
     admins: string[];
   }[];
 }
+
+export interface SteemitRPCAllSubscriptions {
+  id: number;
+  jsonrpc: string;
+  result: [name: string, title: string, role: string, context: string][];
+}

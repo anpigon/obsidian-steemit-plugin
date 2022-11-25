@@ -4,7 +4,7 @@ import { MarkdownView, Notice, Plugin, stringifyYaml, TFile } from 'obsidian';
 
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
-import { SubmitConfirmModal } from './submit_confirm_modal';
+import { SubmitConfirmModal } from './ui/submit_confirm_modal';
 import { SteemitPluginSettings, SteemitPost } from './types';
 import { stripFrontmatter } from './utils';
 

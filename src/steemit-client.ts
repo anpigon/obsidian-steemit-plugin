@@ -2,7 +2,13 @@ import { request } from 'obsidian';
 import { Client } from 'dsteem/lib/client';
 import { PrivateKey } from 'dsteem/lib/crypto';
 
-import { SteemitJsonMetadata, SteemitPost, SteemitRPCCommunities, SteemitRPCError } from './types';
+import {
+  SteemitJsonMetadata,
+  SteemitPost,
+  SteemitRPCAllSubscriptions,
+  SteemitRPCCommunities,
+  SteemitRPCError,
+} from './types';
 import { CommentOperation } from 'dsteem/lib/steem/operation';
 
 export class SteemitClient {
@@ -12,21 +18,48 @@ export class SteemitClient {
     this.client = new Client('https://api.steemit.com');
   }
 
-  getMyCommunities() {
-    return this.getCommunities(this.username);
+  async getMyCommunities() {
+    return (await this.getAllSubscriptions(this.username))?.map(([name, title, role, context]) => ({
+      name,
+      title,
+      role,
+      context,
+    }));
   }
 
-  async getCommunities(observer: string) {
-    // TODO: 속도 개선: 캐시 적용하기
+  async getAllSubscriptions(account: string) {
+    const body = JSON.stringify({
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'bridge.list_all_subscriptions',
+      params: { account },
+    });
+    // eslint-disable-next-line no-console
     const response = await request({
       url: this.client.address,
       method: 'POST',
-      body: JSON.stringify({
-        id: 0,
-        jsonrpc: '2.0',
-        method: 'bridge.list_communities',
-        params: { observer, sort: 'rank' },
-      }),
+      body,
+    });
+    const json = JSON.parse(response);
+    if ('error' in json) {
+      const error = (json as SteemitRPCError).error;
+      throw new Error(error.data ?? error.message);
+    }
+    // eslint-disable-next-line no-console
+    return (json as SteemitRPCAllSubscriptions).result;
+  }
+
+  async getCommunities(observer: string) {
+    const body = JSON.stringify({
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'bridge.list_communities',
+      params: { observer, sort: 'rank' },
+    });
+    const response = await request({
+      url: this.client.address,
+      method: 'POST',
+      body,
     });
     const json = JSON.parse(response);
     if ('error' in json) {
