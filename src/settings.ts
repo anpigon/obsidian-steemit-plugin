@@ -56,6 +56,7 @@ export class SteemitSettingTab extends PluginSettingTab {
           .onChange(async value => {
             this.saveSettings('password', value);
           });
+        text.inputEl.type = 'password';
       });
 
     new Setting(containerEl)
