@@ -1,48 +1,23 @@
-import { FrontMatterCache, MarkdownView, parseFrontMatterTags } from 'obsidian';
+import { MarkdownView, parseFrontMatterTags } from 'obsidian';
 import SteemitPlugin from './main';
 import { SteemitFrontMatter, SteemitPost } from './types';
 
 export const frontmatterRegex = /^---\n(?:((?!---)(.|\n)*?)\n)?---(\n|$)/;
 
-export function parseFrontMatter(content: string): SteemitFrontMatter | null {
+export function parseFrontMatter(content: string): SteemitFrontMatter | undefined {
   if (!frontmatterRegex.test(content)) {
-    return null;
+    return;
   }
-  const extractedFrontMatter = frontmatterRegex.exec(content);
-  const result =
-    extractedFrontMatter?.[1].split('\n').reduce<SteemitFrontMatter>((acc, x) => {
+  return frontmatterRegex
+    .exec(content)?.[1]
+    ?.split('\n')
+    .reduce<SteemitFrontMatter>((acc, x) => {
       const [key, value] = x.split(':');
       return (acc[key?.trim()] = value?.trim()), acc;
-    }, {} as SteemitFrontMatter) ?? null;
-  return result;
+    }, {} as SteemitFrontMatter);
 }
 
-export function addFrontMatter(
-  frontMatter: FrontMatterCache,
-  {
-    category,
-    title,
-    permlink,
-    tags,
-  }: Partial<Pick<SteemitFrontMatter, 'category' | 'title' | 'permlink' | 'tags'>>,
-): SteemitFrontMatter {
-  const newFrontMatter = Object.assign({}, frontMatter);
-
-  const frontMatterKeysForSteemit = ['category', 'permlink', 'title', 'tags'];
-  frontMatterKeysForSteemit.forEach(key => {
-    if (!newFrontMatter.hasOwnProperty(key)) {
-      newFrontMatter[key] = '';
-    }
-  });
-
-  newFrontMatter.category = category;
-  newFrontMatter.title = title;
-  newFrontMatter.permlink = permlink;
-  newFrontMatter.tags = tags;
-  return newFrontMatter;
-}
-
-export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<SteemitPost> {
+export async function parsePostData(plugin: SteemitPlugin): Promise<SteemitPost> {
   const activeView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
   if (!activeView) {
     const error = 'There is no editor found. Nothing will be published.';
@@ -50,23 +25,22 @@ export async function getPostDataFromActiveView(plugin: SteemitPlugin): Promise<
   }
 
   const fileContent = await plugin.app.vault.cachedRead(activeView.file);
-  const frontMatterCache = plugin.app.metadataCache.getFileCache(activeView.file)
-    ?.frontmatter as SteemitFrontMatter;
-  const frontMatter = frontMatterCache ?? parseFrontMatter(fileContent);
-
-  const title = frontMatter?.title || activeView.file.basename;
 
   // Strip front-matter and HTML comments
   const body = removeObsidianComments(stripFrontmatter(fileContent));
 
+  // parse front-matter
+  const frontMatter = (plugin.app.metadataCache.getFileCache(activeView.file)?.frontmatter ??
+    parseFrontMatter(fileContent)) as SteemitFrontMatter;
+
+  const title = frontMatter?.title || activeView.file.basename;
+  const permlink = frontMatter?.permlink || makeDefaultPermlink();
+  const category = frontMatter?.category || plugin.settings?.category || '';
+  const appName = plugin.settings?.appName || `${plugin.manifest.id}/${plugin.manifest.version}`;
   const tags =
     parseFrontMatterTags(frontMatter)
       ?.map(tag => tag.replace(/^#/, '').trim())
       .join(' ') ?? '';
-
-  const permlink = frontMatter?.permlink || makeDefaultPermlink();
-  const category = frontMatter?.category || plugin.settings?.category || '';
-  const appName = plugin.settings?.appName || `${plugin.manifest.id}/${plugin.manifest.version}`;
 
   return {
     appName,
@@ -83,15 +57,6 @@ function makeDefaultPermlink() {
     .toISOString()
     .replace(/[^\w]+/g, '')
     .toLowerCase();
-}
-
-export function addDataToFrontMater(frontmatter: SteemitFrontMatter, data: SteemitPost) {
-  return {
-    title: data.title ?? frontmatter.title ?? '',
-    permlink: data.permlink ?? frontmatter.permlink ?? '',
-    tags: data.tags.split(/\s|,/).map(tag => tag.trim()) ?? frontmatter.tags ?? [],
-    category: data.category ?? frontmatter.category ?? '',
-  } as SteemitFrontMatter;
 }
 
 export function stripFrontmatter(content: string) {

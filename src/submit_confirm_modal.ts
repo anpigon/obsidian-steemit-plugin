@@ -6,7 +6,7 @@ import { Modal, Setting, TextComponent, DropdownComponent, Notice } from 'obsidi
 import SteemitPlugin from './main';
 import { SteemitClient } from './steemit-client';
 import { SteemitPost } from './types';
-import { getPostDataFromActiveView } from './utils';
+import { parsePostData } from './utils';
 
 export class SubmitConfirmModal extends Modal {
   private client: SteemitClient;
@@ -33,7 +33,7 @@ export class SubmitConfirmModal extends Modal {
       this.close();
 
       const response = await this.client.newPost(data);
-      
+
       if (this.callback) this.callback(data, response);
     } catch (ex: any) {
       console.warn(ex);
@@ -61,50 +61,49 @@ export class SubmitConfirmModal extends Modal {
       cls: 'steem-plugin__loading',
     });
 
-    const data = await getPostDataFromActiveView(this.plugin);
+    const postData = await parsePostData(this.plugin);
 
     // get my community categories
-    const categories = (await this.client.getMyCommunities()).filter(c => c.context.subscribed);
-    loading.remove();
-
+    const categoryOptions = (await this.client.getMyCommunities())
+      .filter(c => c.context.subscribed)
+      .reduce<{ [k in string]: string }>((a, b) => {
+        a[b.name] = b.title;
+        return a;
+      }, {});
     const categoryContainer = this.createContainer(contentEl);
     const categoryComponent = new DropdownComponent(categoryContainer);
     categoryComponent.addOption('0', 'My Blog');
-    categoryComponent.addOptions(
-      categories.reduce<{ [k in string]: string }>((a, b) => {
-        a[b.name] = b.title;
-        return a;
-      }, {}),
-    );
-    categoryComponent.setValue(data.category || '0');
-    categoryComponent.onChange(value => (data.category = value));
+    categoryComponent.addOptions(categoryOptions);
+    categoryComponent.setValue(postData.category || '0');
+    categoryComponent.onChange(value => (postData.category = value));
+    loading.remove();
 
     const permlinkContainer = this.createContainer(contentEl, 'permlink');
     const permlinkComponent = new TextComponent(contentEl);
     permlinkComponent.inputEl.className = 'steem-plugin__w80';
-    permlinkComponent.setValue(data.permlink ?? '');
-    permlinkComponent.onChange(value => (data.permlink = value));
+    permlinkComponent.setValue(postData.permlink ?? '');
+    permlinkComponent.onChange(value => (postData.permlink = value));
     permlinkContainer.appendChild(permlinkComponent.inputEl);
 
     const titleContainer = this.createContainer(contentEl, 'title');
     const titleComponent = new TextComponent(contentEl);
     titleComponent.inputEl.className = 'steem-plugin__w80';
-    titleComponent.setValue(data.title ?? '');
-    titleComponent.onChange(value => (data.title = value));
+    titleComponent.setValue(postData.title ?? '');
+    titleComponent.onChange(value => (postData.title = value));
     titleContainer.appendChild(titleComponent.inputEl);
 
     const tagContainer = this.createContainer(contentEl, 'tag');
     const tagComponent = new TextComponent(contentEl);
     tagComponent.inputEl.className = 'steem-plugin__w80';
-    tagComponent.setValue(data.tags ?? '');
-    tagComponent.onChange(value => (data.tags = value));
+    tagComponent.setValue(postData.tags ?? '');
+    tagComponent.onChange(value => (postData.tags = value));
     tagContainer.appendChild(tagComponent.inputEl);
 
     const appNameContainer = this.createContainer(contentEl, 'appName');
     const appNameComponent = new TextComponent(contentEl);
     appNameComponent.inputEl.className = 'steem-plugin__w80';
     appNameComponent.setDisabled(true);
-    appNameComponent.setValue(data.appName ?? '');
+    appNameComponent.setValue(postData.appName ?? '');
     appNameContainer.appendChild(appNameComponent.inputEl);
 
     // buttons
@@ -114,7 +113,7 @@ export class SubmitConfirmModal extends Modal {
         btn
           .setButtonText('Publish')
           .setCta()
-          .onClick(() => this.handleSubmit(data)),
+          .onClick(() => this.handleSubmit(postData)),
       );
   }
 

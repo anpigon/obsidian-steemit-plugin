@@ -17,6 +17,7 @@ export class SteemitClient {
   }
 
   async getCommunities(observer: string) {
+    // TODO: 속도 개선: 캐시 적용하기
     const response = await request({
       url: this.client.address,
       method: 'POST',

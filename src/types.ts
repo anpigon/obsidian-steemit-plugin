@@ -1,4 +1,4 @@
-import { FrontMatterCache } from "obsidian";
+import { FrontMatterCache } from 'obsidian';
 
 export interface SteemitFrontMatter extends FrontMatterCache {
   title?: string;
@@ -7,10 +7,6 @@ export interface SteemitFrontMatter extends FrontMatterCache {
   tags?: string[];
   tag?: string[];
   category?: string;
-  position: {
-    end: { line: number; col: number; offset: number };
-    start: { line: number; col: number; offset: number };
-  };
 }
 
 export interface SteemitPluginSettings {
