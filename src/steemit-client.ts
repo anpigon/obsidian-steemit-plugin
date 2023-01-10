@@ -9,7 +9,7 @@ import {
   SteemitRPCCommunities,
   SteemitRPCError,
 } from './types';
-import { CommentOperation } from 'dsteem/lib/steem/operation';
+import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
 
 const memcached: Record<string, unknown> = {};
 
@@ -85,7 +85,7 @@ export class SteemitClient {
     return (json as SteemitRPCCommunities).result;
   }
 
-  newPost(post: SteemitPost) {
+  newPost(post: SteemitPost, rewardType?: '0%' | '100%' | '50%') {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
       app: post.appName ?? '',
@@ -107,7 +107,31 @@ export class SteemitClient {
     };
 
     const privateKey = PrivateKey.fromString(this.password);
-    return this.client.broadcast.comment(data, privateKey);
+    const commentOptions: CommentOptionsOperation[1] = {
+      author: data.author,
+      permlink: data.permlink,
+      max_accepted_payout: '1000000.000 SBD',
+      percent_steem_dollars: 10000,
+      allow_votes: true,
+      allow_curation_rewards: true,
+      extensions: [],
+    };
+
+    // ref: https://github.dev/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
+    switch (rewardType) {
+      case '0%': // decline payout, 보상 받지않기
+        commentOptions.max_accepted_payout = '0.000 SBD';
+        commentOptions.percent_steem_dollars = 10000;
+        break;
+      case '100%': // 100% steem power payout, 100% 스팀파워로 수령
+        commentOptions.max_accepted_payout = '1000000.000 SBD';
+        commentOptions.percent_steem_dollars = 0; // 10000 === 100% (of 50%)
+        break;
+      default: // 50% steem power, 50% sd+steem, 스팀파워 50% + 스팀달러 50%로 수령
+        commentOptions.max_accepted_payout = '1000000.000 SBD';
+        commentOptions.percent_steem_dollars = 10000;
+    }
+    return this.client.broadcast.commentWithOptions(data, commentOptions, privateKey);
   }
 
   getPost(username: string, permlink: string) {
