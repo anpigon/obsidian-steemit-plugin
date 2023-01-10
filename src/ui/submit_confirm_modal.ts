@@ -5,42 +5,47 @@ import { Modal, Setting, Notice } from 'obsidian';
 
 import SteemitPlugin from '../main';
 import { SteemitClient } from '../steemit-client';
-import { SteemitPost } from '../types';
-import { parsePostData } from '../utils';
-import CustomDropdownComponent from './dropdown_component';
-import CustomFormInputComponent from './forminput_compoent';
+import { RewardType, SteemitPost, SteemitPostOptions } from '../types';
 import CustomLoadingComponent from './loading_component';
 
 export class SubmitConfirmModal extends Modal {
   private client: SteemitClient;
+  private postOptions: SteemitPostOptions = {
+    rewardType: RewardType.DEFAULT,
+    appName: '',
+  };
 
   constructor(
-    private plugin: SteemitPlugin,
-    private readonly callback: (data: SteemitPost, response: TransactionConfirmation) => void,
+    readonly plugin: SteemitPlugin,
+    readonly postData: SteemitPost,
+    readonly callback: (variables: SteemitPost, response: TransactionConfirmation) => void,
   ) {
     super(plugin.app);
 
     // check username and password
-    const { username, password } = this.plugin.settings ?? {};
-    if (!this.plugin.settings || !username || !password) {
+    const {
+      username,
+      password,
+      rewardType: defaultRewardType,
+      appName: defaultAppName,
+      category: defaultCategory,
+    } = plugin.settings ?? {};
+    if (!plugin.settings || !username || !password) {
       throw Error('Your steemit username or password is invalid.');
     }
 
     this.client = new SteemitClient(username, password);
+
+    this.postData.category = this.postData.category || defaultCategory || '0';
+    this.postOptions.rewardType = defaultRewardType ?? RewardType.DEFAULT;
+    this.postOptions.appName = defaultAppName || `${plugin.manifest.id}/${plugin.manifest.version}`;
   }
 
-  async handleSubmit(data: SteemitPost) {
+  async handleSubmit() {
     try {
-      if (!data.category || data.category === '0') {
-        data.category = '';
-      }
       this.close();
-
-      const response = await this.client.newPost(data);
-
-      if (this.callback) {
-        this.callback(data, response);
-      }
+      const response = await this.client.newPost(this.postData, this.postOptions);
+      this.callback(this.postData, response);
     } catch (ex: any) {
       console.warn(ex);
       new Notice(ex.toString());
@@ -50,10 +55,7 @@ export class SubmitConfirmModal extends Modal {
   async getCommunityCategories() {
     const myCommunities = await this.client.getMyCommunities();
     const categoryOptions = myCommunities.reduce<Record<string, string>>(
-      (a, b) => ({
-        ...a,
-        [b.name]: b.title,
-      }),
+      (a, b) => ({ ...a, [b.name]: b.title }),
       {},
     );
     return {
@@ -64,48 +66,68 @@ export class SubmitConfirmModal extends Modal {
 
   async onOpen() {
     const { contentEl } = this;
+    contentEl.classList?.add('steem-plugin');
 
     contentEl.createEl('h2', { text: 'Publish to steemit' });
 
     const loading = CustomLoadingComponent(contentEl);
-    const postData = await parsePostData(this.plugin);
+    const communityCategories = await this.getCommunityCategories();
 
     // get my community categories
-    CustomDropdownComponent(contentEl.createDiv({ cls: 'steem-plugin__container' }), {
-      options: await this.getCommunityCategories(),
-      value: postData.category || '0',
-      onChange: value => (postData.category = value),
+    new Setting(contentEl).setName('Community').addDropdown(async cb => {
+      cb.addOptions(communityCategories);
+      cb.setValue(this.postData.category);
+      cb.onChange(value => (this.postData.category = value));
     });
-    CustomFormInputComponent(contentEl, {
-      label: 'permlink',
-      value: postData.permlink ?? '',
-      onChange: value => (postData.permlink = value),
+    new Setting(contentEl)
+      .setName('Permlink')
+      .addText(cb => {
+        cb.setValue(this.postData.permlink);
+        cb.onChange(value => (this.postData.permlink = value));
+      })
+      .setClass('full-width');
+    new Setting(contentEl)
+      .setName('Title')
+      .addText(cb => {
+        cb.setValue(this.postData.title);
+        cb.onChange(value => (this.postData.title = value));
+      })
+      .setClass('no-underline')
+      .setClass('full-width');
+    new Setting(contentEl)
+      .setName('Tags')
+      .addText(cb => {
+        cb.setValue(this.postData.tags);
+        cb.onChange(value => (this.postData.tags = value));
+      })
+      .setClass('no-underline')
+      .setClass('full-width');
+    new Setting(contentEl).setName('Rewards').addDropdown(cb => {
+      cb.addOption(RewardType.SP, 'Power Up 100%');
+      cb.addOption(RewardType.DEFAULT, 'Default (50% / 50%)');
+      cb.addOption(RewardType.DP, 'Decline Payout');
+      cb.setValue(this.postOptions.rewardType);
+      cb.onChange(value => (this.postOptions.rewardType = value as RewardType));
     });
-    CustomFormInputComponent(contentEl, {
-      label: 'title',
-      value: postData.title ?? '',
-      onChange: value => (postData.title = value),
-    });
-    CustomFormInputComponent(contentEl, {
-      label: 'tag',
-      value: postData.tags ?? '',
-      onChange: value => (postData.tags = value),
-    });
-    CustomFormInputComponent(contentEl, {
-      label: 'appName',
-      value: postData.appName ?? '',
-      disabled: true,
-    });
+    new Setting(contentEl)
+      .setName('AppName')
+      .addText(cb => {
+        cb.setValue(this.postOptions.appName);
+        cb.setDisabled(true);
+      })
+      .setClass('no-underline');
 
     // buttons
     new Setting(contentEl)
-      .addButton(btn => btn.setButtonText('Cancel').onClick(() => this.close()))
-      .addButton(btn =>
-        btn
-          .setButtonText('Publish')
-          .setCta()
-          .onClick(() => this.handleSubmit(postData)),
-      );
+      .addButton(btn => {
+        btn.setButtonText('Cancel');
+        btn.onClick(() => this.close());
+      })
+      .addButton(btn => {
+        btn.setCta();
+        btn.setButtonText('Publish');
+        btn.onClick(() => this.handleSubmit());
+      });
 
     loading.remove();
   }

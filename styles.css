@@ -1,24 +1,4 @@
 /* styles in this plugin */
-.steem-plugin__container {
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.steem-plugin__container input:disabled,
-.steem-plugin__container input:disabled:active,
-.steem-plugin__container input:disabled:focus,
-.steem-plugin__container input:disabled:hover {
-  border-color: var(--background-modifier-border);
-  color: grey;
-  opacity: 0.8;
-} 
-
-.steem-plugin__label {
-  text-transform: capitalize;
-  margin-right: 10px;
-}
-
 .steem-plugin__w100 {
   width: 100%;
 }
@@ -33,4 +13,24 @@
   align-items: center;
   text-align: center;
   height: 200px;
+}
+
+/* modal */
+.steem-plugin.modal-content .setting-item.no-underline {
+  padding-top: 0;
+  border: 0;
+}
+.steem-plugin.modal-content .setting-item.full-width .setting-item-control {
+  flex-grow: 2
+}
+.steem-plugin.modal-content .setting-item.full-width .setting-item-info {
+  width: 15px;
+}
+.steem-plugin.modal-content .setting-item-control input[type='text'] {
+  width: 100%;
+}
+.steem-plugin.modal-content .setting-item-control input[type='text']:disabled {
+  border-color: var(--background-modifier-border);
+  color: grey;
+  opacity: 0.8;
 }
