@@ -7,8 +7,6 @@ import SteemitPlugin from '../main';
 import { SteemitClient } from '../steemit-client';
 import { SteemitPost } from '../types';
 import { parsePostData } from '../utils';
-import CustomDropdownComponent from './dropdown_component';
-import CustomFormInputComponent from './forminput_compoent';
 import CustomLoadingComponent from './loading_component';
 
 export class SubmitConfirmModal extends Modal {
@@ -47,10 +45,7 @@ export class SubmitConfirmModal extends Modal {
   async getCommunityCategories() {
     const myCommunities = await this.client.getMyCommunities();
     const categoryOptions = myCommunities.reduce<Record<string, string>>(
-      (a, b) => ({
-        ...a,
-        [b.name]: b.title,
-      }),
+      (a, b) => ({ ...a, [b.name]: b.title }),
       {},
     );
     return {
@@ -61,38 +56,56 @@ export class SubmitConfirmModal extends Modal {
 
   async onOpen() {
     const { contentEl } = this;
+    contentEl.classList?.add('steem-plugin');
 
     contentEl.createEl('h2', { text: 'Publish to steemit' });
 
     const loading = CustomLoadingComponent(contentEl);
     const postData = await parsePostData(this.plugin);
+    const communityCategories = await this.getCommunityCategories();
 
     // get my community categories
-    CustomDropdownComponent(contentEl.createDiv({ cls: 'steem-plugin__container' }), {
-      options: await this.getCommunityCategories(),
-      value: postData.category || '0',
-      onChange: value => (postData.category = value),
+    new Setting(contentEl).setName('Community').addDropdown(async cb => {
+      cb.addOptions(communityCategories);
+      cb.setValue('0');
+      cb.onChange(value => (postData.category = value));
     });
-    CustomFormInputComponent(contentEl, {
-      label: 'permlink',
-      value: postData.permlink ?? '',
-      onChange: value => (postData.permlink = value),
+    new Setting(contentEl)
+      .setName('Permlink')
+      .addText(cb => {
+        cb.setValue(`${postData.permlink ?? ''}`);
+        cb.onChange(value => (postData.permlink = value));
+      })
+      .setClass('full-width');
+    new Setting(contentEl)
+      .setName('Title')
+      .addText(cb => {
+        cb.setValue(`${postData.title ?? ''}`);
+        cb.onChange(value => (postData.title = value));
+      })
+      .setClass('no-underline')
+      .setClass('full-width');
+    new Setting(contentEl)
+      .setName('Tags')
+      .addText(cb => {
+        cb.setValue(`${postData.tags ?? ''}`);
+        cb.onChange(value => (postData.tags = value));
+      })
+      .setClass('no-underline')
+      .setClass('full-width');
+    new Setting(contentEl).setName('Rewards').addDropdown(cb => {
+      cb.addOption('100%', 'Power Up 100%');
+      cb.addOption('50%', 'Default (50% / 50%)');
+      cb.addOption('0%', 'Decline Payout');
+      cb.setValue('50%');
     });
-    CustomFormInputComponent(contentEl, {
-      label: 'title',
-      value: postData.title ?? '',
-      onChange: value => (postData.title = value),
-    });
-    CustomFormInputComponent(contentEl, {
-      label: 'tag',
-      value: postData.tags ?? '',
-      onChange: value => (postData.tags = value),
-    });
-    CustomFormInputComponent(contentEl, {
-      label: 'appName',
-      value: postData.appName ?? '',
-      disabled: true,
-    });
+    new Setting(contentEl)
+      .setName('AppName')
+      .addText(cb => {
+        cb.setValue(`${postData.appName ?? ''}`);
+        cb.setDisabled(true);
+      })
+      .setClass('no-underline');
 
     // buttons
     new Setting(contentEl)

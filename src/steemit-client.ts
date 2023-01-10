@@ -30,7 +30,7 @@ export class SteemitClient {
 
   getMyCommunities() {
     const key = `getMyCommunities_${this.username}`;
-    const cached = getCache<MyCommunity>(key);
+    const cached = getCache<MyCommunity[]>(key);
     if (cached) {
       return cached;
     }
