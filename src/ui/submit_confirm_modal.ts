@@ -78,7 +78,8 @@ export class SubmitConfirmModal extends Modal {
       cb.addOptions(communityCategories);
       cb.setValue(this.postData.category);
       cb.onChange(value => (this.postData.category = value));
-    });
+    })
+    .setClass('no-border');
     new Setting(contentEl)
       .setName('Permlink')
       .addText(cb => {
@@ -92,7 +93,7 @@ export class SubmitConfirmModal extends Modal {
         cb.setValue(this.postData.title);
         cb.onChange(value => (this.postData.title = value));
       })
-      .setClass('no-underline')
+      .setClass('no-border')
       .setClass('full-width');
     new Setting(contentEl)
       .setName('Tags')
@@ -100,7 +101,7 @@ export class SubmitConfirmModal extends Modal {
         cb.setValue(this.postData.tags);
         cb.onChange(value => (this.postData.tags = value));
       })
-      .setClass('no-underline')
+      .setClass('no-border')
       .setClass('full-width');
     new Setting(contentEl).setName('Rewards').addDropdown(cb => {
       cb.addOption(RewardType.SP, 'Power Up 100%');
@@ -115,7 +116,7 @@ export class SubmitConfirmModal extends Modal {
         cb.setValue(this.postOptions.appName);
         cb.setDisabled(true);
       })
-      .setClass('no-underline');
+      .setClass('no-border');
 
     // buttons
     new Setting(contentEl)

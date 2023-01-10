@@ -16,7 +16,7 @@
 }
 
 /* modal */
-.steem-plugin.modal-content .setting-item.no-underline {
+.steem-plugin.modal-content .setting-item.no-border {
   padding-top: 0;
   border: 0;
 }
