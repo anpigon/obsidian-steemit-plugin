@@ -1,143 +1,125 @@
+import { request } from 'obsidian';
 import { Client } from 'dsteem/lib/client';
 import { PrivateKey } from 'dsteem/lib/crypto';
-import { App, MarkdownView, Notice, parseFrontMatterTags } from 'obsidian';
 
-import SteemitPlugin from './main';
-import { SteemitFrontMatter, SteemitJsonMetadata } from './types';
-import { addFrontMatter, toStringFrontMatter } from './utils';
+import {
+  RewardType,
+  SteemitJsonMetadata,
+  SteemitPost,
+  SteemitPostOptions,
+  SteemitRPCAllSubscriptions,
+  SteemitRPCError,
+} from './types';
+import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
+import { getCache, setCache } from './cache';
+
+export interface MyCommunity {
+  name: string;
+  title: string;
+  role: string;
+  context: string;
+}
 
 export class SteemitClient {
-  constructor(
-    private readonly app: App,
-    private readonly plugin: SteemitPlugin,
-  ) {
+  private readonly client: Client;
+
+  constructor(private readonly username: string = '', private readonly password: string = '') {
     this.client = new Client('https://api.steemit.com');
   }
 
-  readonly client: Client;
-
-  async getPost() {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (activeView) {
-      try {
-        const frontMatter = this.app.metadataCache.getFileCache(activeView.file)
-          ?.frontmatter as SteemitFrontMatter;
-        if (!frontMatter) {
-          new Notice('Front Matter not found. expect a url.');
-          return;
-        }
-
-        let author = this.plugin.settings?.username;
-        let permlink = frontMatter.permlink;
-
-        const url = frontMatter.url;
-        if (url) {
-          const urls = url.replace(/\?.*$/, '').split('/');
-          permlink = urls.pop();
-          author = urls.pop()?.replace(/^@/, '');
-        }
-
-        const response = await this.client.database.call('get_content', [
-          author,
-          permlink,
-        ]);
-        const jsonMetadata = JSON.parse(response.json_metadata || '{}');
-        const newFrontMatter = addFrontMatter(frontMatter, {
-          category: response.category,
-          title: response.title,
-          permlink: response.permlink,
-          tags: jsonMetadata.tags,
-        });
-        const frontMatterString = toStringFrontMatter(newFrontMatter);
-        const fileContent = `${frontMatterString}\n${response.body}`;
-        await this.app.vault.modify(activeView.file, fileContent);
-      } catch (ex: any) {
-        console.warn(ex);
-        new Notice(ex.toString());
-      }
-    } else {
-      new Notice('There is no editor view found.');
+  getMyCommunities() {
+    const key = `getMyCommunities_${this.username}`;
+    const cached = getCache<MyCommunity[]>(key);
+    if (cached) {
+      return cached;
     }
+    return this.getAllSubscriptions(this.username).then(r => {
+      const result = r?.map<MyCommunity>(([name, title, role, context]) => ({
+        name,
+        title,
+        role,
+        context,
+      }));
+      setCache(key, result);
+      return result;
+    });
   }
 
-  async newPost() {
-    const { workspace } = this.app;
-    const activeView = workspace.getActiveViewOfType(MarkdownView);
-    if (activeView) {
-      try {
-        const fileContent = await this.app.vault.cachedRead(activeView.file);
-        const frontMatter = this.app.metadataCache.getFileCache(activeView.file)
-          ?.frontmatter as SteemitFrontMatter;
-        if (!frontMatter) {
-          new Notice('Please write frontmatter.');
-          return;
-        }
-
-        const tags = parseFrontMatterTags(frontMatter)?.map(tag =>
-          tag.replace(/^#/, '').trim(),
-        );
-        const title = frontMatter?.title || activeView.file.basename;
-        const permlink =
-          frontMatter?.permlink ||
-          new Date()
-            .toISOString()
-            .replace(/[^\w]+/g, '')
-            .toLowerCase();
-
-        const { username, password } = this.plugin.settings || {};
-        if (!username || !password) {
-          throw Error('Your account is invalid.');
-        }
-
-        const category =
-          frontMatter?.category ||
-          this.plugin.settings?.category ||
-          tags?.[0] ||
-          'kr';
-
-        // Strip front-matter and HTML comments
-        const parsedContent = fileContent
-          .slice(frontMatter.position.end.offset)
-          .replace(/^<!--.*-->$/ms, '')
-          .trim();
-
-        const appName =
-          this.plugin.settings?.appName ||
-          `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
-        const jsonMetadata: SteemitJsonMetadata = {
-          format: 'markdown',
-          app: appName,
-        };
-        if (tags && tags.length) {
-          jsonMetadata['tags'] = tags;
-        }
-        const data = {
-          parent_author: '', // Leave parent author empty
-          parent_permlink: category, // Main tag
-          author: username, // Author
-          permlink: permlink, // Permlink
-          title: title, // Title
-          body: parsedContent, // Body
-          json_metadata: JSON.stringify(jsonMetadata), // Json Meta
-        };
-
-        const response = await this.client.broadcast.comment(
-          data,
-          PrivateKey.fromString(password),
-        );
-
-        await this.app.vault.modify(
-          activeView.file,
-          fileContent.replace(/^(permlink:).*$/m, `$1 ${permlink}`),
-        );
-
-        new Notice(`Post published successfully! ${response.id}`);
-      } catch (ex: any) {
-        console.warn(ex);
-        new Notice(ex.toString());
-      }
-    } else {
-      new Notice('There is no editor found. Nothing will be published.');
+  // 유저가 가입한 커뮤니티 리스트 조회
+  async getAllSubscriptions(account: string) {
+    const body = JSON.stringify({
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'bridge.list_all_subscriptions',
+      params: { account },
+    });
+    const response = await request({
+      url: this.client.address,
+      method: 'POST',
+      body,
+    });
+    const json = JSON.parse(response);
+    if ('error' in json) {
+      const error = (json as SteemitRPCError).error;
+      throw new Error(error.data ?? error.message);
     }
+    return (json as SteemitRPCAllSubscriptions).result;
+  }
+
+  newPost(post: SteemitPost, { appName, rewardType }: SteemitPostOptions) {
+    const jsonMetadata: SteemitJsonMetadata = {
+      format: 'markdown',
+      app: appName,
+    };
+
+    if (!post.category || post.category === '0') {
+      post.category = '';
+    }
+
+    const tags = post.tags?.split(/\s|,/).map(tag => tag.trim());
+    if (tags && tags.length) {
+      jsonMetadata['tags'] = tags;
+    }
+
+    const privateKey = PrivateKey.fromString(this.password);
+    const data: CommentOperation[1] = {
+      parent_author: '', // Leave parent author empty
+      parent_permlink: post.category || tags?.[0] || 'steemit', // Main tag
+      author: this.username, // Author
+      permlink: post.permlink, // Permlink
+      title: post.title, // Title
+      body: post.body, // Body
+      json_metadata: JSON.stringify(jsonMetadata), // Json Meta
+    };
+    const commentOptions: CommentOptionsOperation[1] = {
+      author: data.author,
+      permlink: data.permlink,
+      max_accepted_payout: '1000000.000 SBD',
+      percent_steem_dollars: 10000,
+      allow_votes: true,
+      allow_curation_rewards: true,
+      extensions: [],
+    };
+
+    // ref: https://github.com/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
+    switch (rewardType) {
+      case RewardType.DP: // decline payout, 보상 받지않기
+        commentOptions.max_accepted_payout = '0.000 SBD';
+        commentOptions.percent_steem_dollars = 0;
+        break;
+      case RewardType.SP: // 100% steem power payout, 100% 스팀파워로 수령
+        commentOptions.max_accepted_payout = '1000000.000 SBD';
+        commentOptions.percent_steem_dollars = 0; // 10000 === 100% (of 50%)
+        break;
+      case RewardType.DEFAULT:
+      default: // 50% steem power, 50% sd+steem, 스팀파워 50% + 스팀달러 50%로 수령
+        commentOptions.max_accepted_payout = '1000000.000 SBD';
+        commentOptions.percent_steem_dollars = 10000;
+    }
+    return this.client.broadcast.commentWithOptions(data, commentOptions, privateKey);
+  }
+
+  getPost(username: string, permlink: string) {
+    return this.client.database.call('get_content', [username, permlink]);
   }
 }

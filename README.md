@@ -31,12 +31,12 @@ tags: kr-dev steemit
 Text surrounded by HTML comment tags (see below), will be ignored and not published to Steemit. Handy if there are bits you want to exclude from Steemit but keep in the same Obsidian markdown file.
 
 ```plaintext
-<!--
+%%
 This is a multi-line
 comment, cool!
--->
+%%
 ```
 
 ```plaintext
-<!-- This is an in-line comment. -->
+%% This is an in-line comment. %%
 ```

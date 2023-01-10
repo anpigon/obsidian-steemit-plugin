@@ -1,4 +1,4 @@
-import { FrontMatterCache } from "obsidian";
+import { FrontMatterCache } from 'obsidian';
 
 export interface SteemitFrontMatter extends FrontMatterCache {
   title?: string;
@@ -7,10 +7,12 @@ export interface SteemitFrontMatter extends FrontMatterCache {
   tags?: string[];
   tag?: string[];
   category?: string;
-  position: {
-    end: { line: number; col: number; offset: number };
-    start: { line: number; col: number; offset: number };
-  };
+}
+
+export enum RewardType {
+  DP = '0%',
+  SP = '100%',
+  DEFAULT = '50%',
 }
 
 export interface SteemitPluginSettings {
@@ -18,6 +20,7 @@ export interface SteemitPluginSettings {
   username: string;
   password: string;
   appName: string;
+  rewardType: RewardType;
 }
 
 export interface SteemitJsonMetadata {
@@ -26,4 +29,69 @@ export interface SteemitJsonMetadata {
   tags?: string[];
   canonical_url?: string;
   image?: string[];
+}
+
+export interface SteemitPost {
+  category: string;
+  permlink: string;
+  title: string;
+  body: string;
+  tags: string;
+}
+
+export interface SteemitPostOptions {
+  rewardType: RewardType;
+  appName: string;
+}
+
+export interface SteemitRPCError {
+  id: number;
+  jsonrpc: string;
+  error: {
+    code: number;
+    message: string;
+    data: string;
+  };
+}
+
+export interface SteemitRPCError {
+  id: number;
+  jsonrpc: string;
+  error: {
+    code: number;
+    message: string;
+    data: string;
+  };
+}
+
+export interface SteemitRPCCommunities {
+  id: number;
+  jsonrpc: string;
+  result: {
+    id: number;
+    name: string;
+    title: string;
+    about: string;
+    lang: string;
+    type_id: number;
+    is_nsfw: boolean;
+    subscribers: number;
+    sum_pending: number;
+    num_pending: number;
+    num_authors: number;
+    created_at: string;
+    avatar_url: string;
+    context: {
+      subscribed: boolean;
+      role: string;
+      title: string;
+    };
+    admins: string[];
+  }[];
+}
+
+export interface SteemitRPCAllSubscriptions {
+  id: number;
+  jsonrpc: string;
+  result: [name: string, title: string, role: string, context: string][];
 }
