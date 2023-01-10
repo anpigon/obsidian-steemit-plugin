@@ -1,4 +1,4 @@
-import { MarkdownView, parseFrontMatterTags } from 'obsidian';
+import { MarkdownView, parseFrontMatterTags, TFile, parseYaml } from 'obsidian';
 import { SteemitFrontMatter, SteemitPost } from './types';
 
 export const frontmatterRegex = /^---\n(?:((?!---)(.|\n)*?)\n)?---(\n|$)/;
@@ -16,25 +16,29 @@ export function parseFrontMatter(content: string): SteemitFrontMatter | undefine
     }, {} as SteemitFrontMatter);
 }
 
-export function parsePostData(activeView: MarkdownView): SteemitPost {
-  const fileContent = activeView.data;
-  const body = removeObsidianComments(stripFrontmatter(fileContent));
-  const frontMatter = parseFrontMatter(fileContent);
+export function getActiveView() {
+  const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+  if (!activeView) {
+    throw new Error('There is no editor view found.');
+  }
+  return activeView;
+}
 
-  const title = frontMatter?.title?.toString() || activeView.file.basename;
-  const permlink = frontMatter?.permlink?.toString() || makeDefaultPermlink();
-  const category = frontMatter?.category?.toString() || '';
-  const tags =
-    parseFrontMatterTags(frontMatter)
-      ?.map(tag => tag.replace(/^#/, '').trim())
-      .join(' ') ?? '';
+export function getCachedFrontmatter<T = Record<string, string>>(file: TFile) {
+  const frontmatter = { ...app.metadataCache.getFileCache(file)?.frontmatter };
+  delete frontmatter['position'];
+  return frontmatter as T;
+}
 
+export function parsePostData(): SteemitPost {
+  const activeView = getActiveView();
+  const frontMatter = parseFrontmatter(activeView.data);
   return {
-    category,
-    permlink,
-    title,
-    body,
-    tags,
+    category: frontMatter?.category?.toString() || '',
+    permlink: frontMatter?.permlink?.toString() || makeDefaultPermlink(),
+    title: frontMatter?.title?.toString() || activeView.file.basename,
+    tags: frontMatter?.tags?.toString() || '',
+    body: removeObsidianComments(stripFrontmatter(activeView.data)),
   };
 }
 
@@ -43,6 +47,14 @@ function makeDefaultPermlink() {
     .toISOString()
     .replace(/[^\w]+/g, '')
     .toLowerCase();
+}
+
+export function parseFrontmatter(content: string) {
+  const results = parseYaml(content.split('---')?.[1] ?? '');
+  const tags = parseFrontMatterTags(results)
+    ?.map(tag => tag.replace(/^#/, '').trim())
+    .join(' ');
+  return { ...results, tags };
 }
 
 export function stripFrontmatter(content: string) {
