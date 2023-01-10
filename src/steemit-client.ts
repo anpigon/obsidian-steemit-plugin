@@ -6,13 +6,10 @@ import {
   SteemitJsonMetadata,
   SteemitPost,
   SteemitRPCAllSubscriptions,
-  SteemitRPCCommunities,
   SteemitRPCError,
 } from './types';
 import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
 import { getCache, setCache } from './cache';
-
-const memcached: Record<string, unknown> = {};
 
 export interface MyCommunity {
   name: string;
