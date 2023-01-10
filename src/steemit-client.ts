@@ -67,37 +67,22 @@ export class SteemitClient {
     return (json as SteemitRPCAllSubscriptions).result;
   }
 
-  async getCommunities(observer: string) {
-    const body = JSON.stringify({
-      id: 0,
-      jsonrpc: '2.0',
-      method: 'bridge.list_communities',
-      params: { observer, sort: 'rank' },
-    });
-    const response = await request({
-      url: this.client.address,
-      method: 'POST',
-      body,
-    });
-    const json = JSON.parse(response);
-    if ('error' in json) {
-      const error = (json as SteemitRPCError).error;
-      throw new Error(error.data ?? error.message);
-    }
-    return (json as SteemitRPCCommunities).result;
-  }
-
   newPost(post: SteemitPost, rewardType?: '0%' | '100%' | '50%') {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
       app: post.appName ?? '',
     };
 
+    if (!post.category || post.category === '0') {
+      post.category = '';
+    }
+
     const tags = post.tags?.split(/\s|,/).map(tag => tag.trim());
     if (tags && tags.length) {
       jsonMetadata['tags'] = tags;
     }
 
+    const privateKey = PrivateKey.fromString(this.password);
     const data: CommentOperation[1] = {
       parent_author: '', // Leave parent author empty
       parent_permlink: post.category || tags?.[0] || 'steemit', // Main tag
@@ -107,8 +92,6 @@ export class SteemitClient {
       body: post.body, // Body
       json_metadata: JSON.stringify(jsonMetadata), // Json Meta
     };
-
-    const privateKey = PrivateKey.fromString(this.password);
     const commentOptions: CommentOptionsOperation[1] = {
       author: data.author,
       permlink: data.permlink,

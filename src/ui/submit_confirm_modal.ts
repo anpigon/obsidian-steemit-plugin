@@ -31,9 +31,6 @@ export class SubmitConfirmModal extends Modal {
 
   async handleSubmit(data: SteemitPost) {
     try {
-      if (!data.category || data.category === '0') {
-        data.category = '';
-      }
       this.close();
 
       const response = await this.client.newPost(data);
