@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.7...0.2.0) (2023-01-10)
+
+
+### Features
+
+* 보상 옵션 추가 ([f7fddc0](https://github.com/anpigon/obsidian-steemit-plugin/commit/f7fddc03828bd6b0a915b7b9509d1f849b42a534))
+* 보상옵션 ([a14567e](https://github.com/anpigon/obsidian-steemit-plugin/commit/a14567eb8b268be468e0445a4c4ef9a67a86a5cb))
+* cached AllSubscriptions API ([33990df](https://github.com/anpigon/obsidian-steemit-plugin/commit/33990df55138630c47fd90230c225c743c9689c8))
+
+
+### Bug Fixes
+
+* memcached 타입 정의 ([e5bd5c3](https://github.com/anpigon/obsidian-steemit-plugin/commit/e5bd5c303f9c3c86bd11327ae3ccc32b8d210761))
+
 ### [0.1.8](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.7...0.1.8) (2022-11-27)
 
 
