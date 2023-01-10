@@ -9,11 +9,18 @@ export interface SteemitFrontMatter extends FrontMatterCache {
   category?: string;
 }
 
+export enum RewardType {
+  DP = '0%',
+  SP = '100%',
+  DEFAULT = '50%',
+}
+
 export interface SteemitPluginSettings {
   category: string;
   username: string;
   password: string;
   appName: string;
+  rewardType: RewardType;
 }
 
 export interface SteemitJsonMetadata {
@@ -31,6 +38,7 @@ export interface SteemitPost {
   body: string;
   tags: string;
   appName?: string;
+  rewardType?: RewardType;
 }
 
 export interface SteemitRPCError {

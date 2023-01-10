@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import SteemitPlugin from './main';
-import { SteemitPluginSettings } from './types';
+import { RewardType, SteemitPluginSettings } from './types';
 
 export const DEFAULT_SETTINGS: SteemitPluginSettings = {
   category: '',
   username: '',
   password: '',
   appName: '',
+  rewardType: RewardType.DEFAULT,
 };
 
 export class SteemitSettingTab extends PluginSettingTab {
@@ -20,7 +21,7 @@ export class SteemitSettingTab extends PluginSettingTab {
     this.defaultAppName = `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
   }
 
-  async saveSettings(name: string, value: string) {
+  async saveSettings(name: keyof SteemitPluginSettings, value: string) {
     if (this.plugin.settings) {
       (this.plugin.settings as any)[name] = value;
       await this.plugin.saveSettings();
@@ -70,6 +71,14 @@ export class SteemitSettingTab extends PluginSettingTab {
             this.saveSettings('category', value);
           });
       });
+
+    new Setting(containerEl).setName('Default Rewards').addDropdown(cb => {
+      cb.addOption('100%', 'Power Up 100%');
+      cb.addOption('50%', 'Default (50% / 50%)');
+      cb.addOption('0%', 'Decline Payout');
+      cb.setValue('50%');
+      cb.onChange(value => this.saveSettings('rewardType', value))
+    });
 
     new Setting(containerEl)
       .setName('Metadata AppName (options)')

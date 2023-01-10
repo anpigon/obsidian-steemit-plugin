@@ -5,7 +5,7 @@ import { Modal, Setting, Notice } from 'obsidian';
 
 import SteemitPlugin from '../main';
 import { SteemitClient } from '../steemit-client';
-import { SteemitPost } from '../types';
+import { RewardType, SteemitPost } from '../types';
 import { parsePostData } from '../utils';
 import CustomLoadingComponent from './loading_component';
 
@@ -94,10 +94,11 @@ export class SubmitConfirmModal extends Modal {
       .setClass('no-underline')
       .setClass('full-width');
     new Setting(contentEl).setName('Rewards').addDropdown(cb => {
-      cb.addOption('100%', 'Power Up 100%');
-      cb.addOption('50%', 'Default (50% / 50%)');
-      cb.addOption('0%', 'Decline Payout');
-      cb.setValue('50%');
+      cb.addOption(RewardType.SP, 'Power Up 100%');
+      cb.addOption(RewardType.DEFAULT, 'Default (50% / 50%)');
+      cb.addOption(RewardType.DP, 'Decline Payout');
+      cb.setValue(this.plugin.settings?.rewardType ?? '50%');
+      cb.onChange(value => (postData.rewardType = value as RewardType));
     });
     new Setting(contentEl)
       .setName('AppName')
@@ -109,13 +110,15 @@ export class SubmitConfirmModal extends Modal {
 
     // buttons
     new Setting(contentEl)
-      .addButton(btn => btn.setButtonText('Cancel').onClick(() => this.close()))
-      .addButton(btn =>
-        btn
-          .setButtonText('Publish')
-          .setCta()
-          .onClick(() => this.handleSubmit(postData)),
-      );
+      .addButton(btn => {
+        btn.setButtonText('Cancel');
+        btn.onClick(() => this.close());
+      })
+      .addButton(btn => {
+        btn.setCta();
+        btn.setButtonText('Publish');
+        btn.onClick(() => this.handleSubmit(postData));
+      });
 
     loading.remove();
   }
