@@ -1,5 +1,4 @@
 import { MarkdownView, parseFrontMatterTags } from 'obsidian';
-import SteemitPlugin from './main';
 import { SteemitFrontMatter, SteemitPost } from './types';
 
 export const frontmatterRegex = /^---\n(?:((?!---)(.|\n)*?)\n)?---(\n|$)/;
@@ -17,33 +16,20 @@ export function parseFrontMatter(content: string): SteemitFrontMatter | undefine
     }, {} as SteemitFrontMatter);
 }
 
-export async function parsePostData(plugin: SteemitPlugin): Promise<SteemitPost> {
-  const activeView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-  if (!activeView) {
-    const error = 'There is no editor found. Nothing will be published.';
-    throw new Error(error);
-  }
-
-  const fileContent = await plugin.app.vault.cachedRead(activeView.file);
-
-  // Strip front-matter and HTML comments
+export function parsePostData(activeView: MarkdownView): SteemitPost {
+  const fileContent = activeView.data;
   const body = removeObsidianComments(stripFrontmatter(fileContent));
+  const frontMatter = parseFrontMatter(fileContent);
 
-  // parse front-matter
-  const frontMatter = (plugin.app.metadataCache.getFileCache(activeView.file)?.frontmatter ??
-    parseFrontMatter(fileContent)) as SteemitFrontMatter;
-
-  const title = frontMatter?.title || activeView.file.basename;
-  const permlink = frontMatter?.permlink || makeDefaultPermlink();
-  const category = frontMatter?.category || plugin.settings?.category || '';
-  const appName = plugin.settings?.appName || `${plugin.manifest.id}/${plugin.manifest.version}`;
+  const title = frontMatter?.title?.toString() || activeView.file.basename;
+  const permlink = frontMatter?.permlink?.toString() || makeDefaultPermlink();
+  const category = frontMatter?.category?.toString() || '';
   const tags =
     parseFrontMatterTags(frontMatter)
       ?.map(tag => tag.replace(/^#/, '').trim())
       .join(' ') ?? '';
 
   return {
-    appName,
     category,
     permlink,
     title,

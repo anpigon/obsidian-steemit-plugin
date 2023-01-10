@@ -32,13 +32,16 @@ export interface SteemitJsonMetadata {
 }
 
 export interface SteemitPost {
-  category?: string;
+  category: string;
   permlink: string;
   title: string;
   body: string;
   tags: string;
-  appName?: string;
-  rewardType?: RewardType;
+}
+
+export interface SteemitPostOptions {
+  rewardType: RewardType;
+  appName: string;
 }
 
 export interface SteemitRPCError {

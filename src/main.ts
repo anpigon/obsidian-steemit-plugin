@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
 import { SteemitPluginSettings, SteemitPost } from './types';
-import { stripFrontmatter } from './utils';
+import { parsePostData, stripFrontmatter } from './utils';
 
 export default class SteemitPlugin extends Plugin {
   #settings?: SteemitPluginSettings;
@@ -23,17 +23,12 @@ export default class SteemitPlugin extends Plugin {
     this.addCommand({
       id: 'obsidian-steemit-publish',
       name: 'Publish to Steemit',
-      callback: () => {
-        this.publishSteemit();
-      },
+      editorCallback: (_, view) => this.publishSteemit(view),
     });
-
     this.addCommand({
       id: 'obsidian-steemit-import-from-url',
       name: 'Import from url',
-      callback: async () => {
-        this.scrapSteemit();
-      },
+      editorCallback: (_, view) => this.scrapSteemit(view),
     });
 
     // This adds a settings tab so the user can configure various aspects of the plugin
@@ -48,9 +43,8 @@ export default class SteemitPlugin extends Plugin {
     await this.saveData(this.#settings);
   }
 
-  async scrapSteemit() {
+  async scrapSteemit({ file }: MarkdownView) {
     try {
-      const { file } = this.getActiveView();
       const cachedFrontmatter = this.getCachedFrontmatter(file);
       const url = cachedFrontmatter?.url;
       if (!url) {
@@ -99,12 +93,13 @@ export default class SteemitPlugin extends Plugin {
     return frontmatter as Record<string, string>;
   }
 
-  async publishSteemit() {
+  async publishSteemit(activeView: MarkdownView) {
     try {
-      // open confirm modal popup
-      new SubmitConfirmModal(this, async (result, response) => {
+      await activeView.save();
+      const postData = parsePostData(activeView);
+      new SubmitConfirmModal(this, postData, async (postData, response) => {
         try {
-          await this.updateFileContent(result);
+          await this.updateFileContent(postData);
           new Notice(`Post published successfully! ${response.id}`);
         } catch (ex: any) {
           console.warn(ex);

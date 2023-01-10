@@ -6,6 +6,7 @@ import {
   RewardType,
   SteemitJsonMetadata,
   SteemitPost,
+  SteemitPostOptions,
   SteemitRPCAllSubscriptions,
   SteemitRPCError,
 } from './types';
@@ -65,10 +66,10 @@ export class SteemitClient {
     return (json as SteemitRPCAllSubscriptions).result;
   }
 
-  newPost(post: SteemitPost, rewardType?: RewardType) {
+  newPost(post: SteemitPost, { appName, rewardType }: SteemitPostOptions) {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
-      app: post.appName ?? '',
+      app: appName,
     };
 
     if (!post.category || post.category === '0') {
