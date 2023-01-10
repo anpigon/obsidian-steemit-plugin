@@ -10,8 +10,16 @@ import {
   SteemitRPCError,
 } from './types';
 import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
+import { getCache, setCache } from './cache';
 
 const memcached: Record<string, unknown> = {};
+
+export interface MyCommunity {
+  name: string;
+  title: string;
+  role: string;
+  context: string;
+}
 
 export class SteemitClient {
   private readonly client: Client;
@@ -22,27 +30,23 @@ export class SteemitClient {
 
   getMyCommunities() {
     const key = `getMyCommunities_${this.username}`;
-    if (memcached[key]) {
-      return memcached[key] as {
-        name: string;
-        title: string;
-        role: string;
-        context: string;
-      }[];
+    const cached = getCache<MyCommunity>(key);
+    if (cached) {
+      return cached;
     }
-    const response = this.getAllSubscriptions(this.username).then(r => {
-      const result = r?.map(([name, title, role, context]) => ({
+    return this.getAllSubscriptions(this.username).then(r => {
+      const result = r?.map<MyCommunity>(([name, title, role, context]) => ({
         name,
         title,
         role,
         context,
       }));
-      memcached[key] = result;
+      setCache(key, result);
       return result;
     });
-    return response;
   }
 
+  // 유저가 가입한 커뮤니티 리스트 조회
   async getAllSubscriptions(account: string) {
     const body = JSON.stringify({
       id: 0,
@@ -50,7 +54,6 @@ export class SteemitClient {
       method: 'bridge.list_all_subscriptions',
       params: { account },
     });
-    // eslint-disable-next-line no-console
     const response = await request({
       url: this.client.address,
       method: 'POST',
@@ -61,7 +64,6 @@ export class SteemitClient {
       const error = (json as SteemitRPCError).error;
       throw new Error(error.data ?? error.message);
     }
-    // eslint-disable-next-line no-console
     return (json as SteemitRPCAllSubscriptions).result;
   }
 
