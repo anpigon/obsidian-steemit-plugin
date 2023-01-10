@@ -6,10 +6,11 @@ import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
 import { SteemitPluginSettings, SteemitPost } from './types';
-import { parsePostData, stripFrontmatter } from './utils';
+import { getActiveView, getCachedFrontmatter, parseFrontmatter, parsePostData } from './utils';
 
 export default class SteemitPlugin extends Plugin {
   #settings?: SteemitPluginSettings;
+  client?: SteemitClient;
 
   get settings() {
     return this.#settings;
@@ -23,16 +24,18 @@ export default class SteemitPlugin extends Plugin {
     this.addCommand({
       id: 'obsidian-steemit-publish',
       name: 'Publish to Steemit',
-      editorCallback: (_, view) => this.publishSteemit(view),
+      callback: () => this.publishSteemit(),
     });
     this.addCommand({
       id: 'obsidian-steemit-import-from-url',
       name: 'Import from url',
-      editorCallback: (_, view) => this.scrapSteemit(view),
+      callback: () => this.scrapSteemit(),
     });
 
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new SteemitSettingTab(this.app, this));
+
+    this.client = new SteemitClient(this.settings?.username, this.settings?.password);
   }
 
   async loadSettings() {
@@ -43,9 +46,10 @@ export default class SteemitPlugin extends Plugin {
     await this.saveData(this.#settings);
   }
 
-  async scrapSteemit({ file }: MarkdownView) {
+  async scrapSteemit() {
     try {
-      const cachedFrontmatter = this.getCachedFrontmatter(file);
+      const { file } = getActiveView();
+      const cachedFrontmatter = getCachedFrontmatter(file);
       const url = cachedFrontmatter?.url;
       if (!url) {
         throw new Error('Front Matter not found. expect a url.');
@@ -93,17 +97,29 @@ export default class SteemitPlugin extends Plugin {
     return frontmatter as Record<string, string>;
   }
 
-  async publishSteemit(activeView: MarkdownView) {
+  async publishSteemit() {
     try {
-      await activeView.save();
-      const postData = parsePostData(activeView);
-      new SubmitConfirmModal(this, postData, async (postData, response) => {
-        try {
-          await this.updateFileContent(postData);
-          new Notice(`Post published successfully! ${response.id}`);
-        } catch (ex: any) {
-          console.warn(ex);
-          new Notice(ex.toString());
+      // check username and password
+      if (!this.settings || !this.settings.username || !this.settings.password) {
+        throw Error('Your steemit username or password is invalid.');
+      }
+      this.client = new SteemitClient(this.settings.username, this.settings.password);
+
+      const data = parsePostData();
+      if (!data.body) {
+        throw new Error('Content is empty.');
+      }
+
+      new SubmitConfirmModal(this, data, async (post, postOptions) => {
+        if (this.client) {
+          try {
+            const response = await this.client.newPost(post, postOptions);
+            await this.updateFileContent(post);
+            new Notice(`Post published successfully! ${response.id}`);
+          } catch (ex: any) {
+            console.warn(ex);
+            new Notice(ex.toString());
+          }
         }
       }).open();
     } catch (e: any) {
@@ -111,16 +127,15 @@ export default class SteemitPlugin extends Plugin {
     }
   }
 
-  async updateFileContent(steemitPost: SteemitPost) {
-    const { file } = this.getActiveView();
-    const frontMatter = {
-      ...this.getCachedFrontmatter(file),
-      category: steemitPost.category || 'steemit',
-      title: steemitPost.title,
-      permlink: steemitPost.permlink,
-      tags: steemitPost.tags,
-    };
-    const content = stripFrontmatter(await this.app.vault.cachedRead(file));
-    await this.app.vault.modify(file, `---\n${stringifyYaml(frontMatter)}---\n${content}`);
+  async updateFileContent(post: SteemitPost) {
+    const activeView = getActiveView();
+    const frontMatter = stringifyYaml({
+      ...parseFrontmatter(activeView.data),
+      category: post.category === '0' ? '' : post.category,
+      title: post.title,
+      permlink: post.permlink,
+      tags: post.tags,
+    });
+    await this.app.vault.modify(activeView.file, `---\n${frontMatter}---\n${post.body}`);
   }
 }

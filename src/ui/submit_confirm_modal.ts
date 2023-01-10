@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { TransactionConfirmation } from 'dsteem/lib/steem/transaction';
-import { Modal, Setting, Notice } from 'obsidian';
+import { Modal, Setting } from 'obsidian';
 
 import SteemitPlugin from '../main';
-import { SteemitClient } from '../steemit-client';
 import { RewardType, SteemitPost, SteemitPostOptions } from '../types';
 import CustomLoadingComponent from './loading_component';
 
 export class SubmitConfirmModal extends Modal {
-  private client: SteemitClient;
   private postOptions: SteemitPostOptions = {
     rewardType: RewardType.DEFAULT,
     appName: '',
@@ -18,23 +15,15 @@ export class SubmitConfirmModal extends Modal {
   constructor(
     readonly plugin: SteemitPlugin,
     readonly postData: SteemitPost,
-    readonly callback: (variables: SteemitPost, response: TransactionConfirmation) => void,
+    readonly callback: (variables: SteemitPost, postOptions: SteemitPostOptions) => void,
   ) {
     super(plugin.app);
 
-    // check username and password
     const {
-      username,
-      password,
       rewardType: defaultRewardType,
       appName: defaultAppName,
       category: defaultCategory,
     } = plugin.settings ?? {};
-    if (!plugin.settings || !username || !password) {
-      throw Error('Your steemit username or password is invalid.');
-    }
-
-    this.client = new SteemitClient(username, password);
 
     this.postData.category = this.postData.category || defaultCategory || '0';
     this.postOptions.rewardType = defaultRewardType ?? RewardType.DEFAULT;
@@ -42,19 +31,13 @@ export class SubmitConfirmModal extends Modal {
   }
 
   async handleSubmit() {
-    try {
-      this.close();
-      const response = await this.client.newPost(this.postData, this.postOptions);
-      this.callback(this.postData, response);
-    } catch (ex: any) {
-      console.warn(ex);
-      new Notice(ex.toString());
-    }
+    this.callback(this.postData, this.postOptions);
+    this.close();
   }
 
   async getCommunityCategories() {
-    const myCommunities = await this.client.getMyCommunities();
-    const categoryOptions = myCommunities.reduce<Record<string, string>>(
+    const myCommunities = await this.plugin.client?.getMyCommunities();
+    const categoryOptions = myCommunities?.reduce<Record<string, string>>(
       (a, b) => ({ ...a, [b.name]: b.title }),
       {},
     );
@@ -74,12 +57,14 @@ export class SubmitConfirmModal extends Modal {
     const communityCategories = await this.getCommunityCategories();
 
     // get my community categories
-    new Setting(contentEl).setName('Community').addDropdown(async cb => {
-      cb.addOptions(communityCategories);
-      cb.setValue(this.postData.category);
-      cb.onChange(value => (this.postData.category = value));
-    })
-    .setClass('no-border');
+    new Setting(contentEl)
+      .setName('Community')
+      .addDropdown(async cb => {
+        cb.addOptions(communityCategories);
+        cb.setValue(this.postData.category);
+        cb.onChange(value => (this.postData.category = value));
+      })
+      .setClass('no-border');
     new Setting(contentEl)
       .setName('Permlink')
       .addText(cb => {

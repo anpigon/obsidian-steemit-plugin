@@ -101,11 +101,11 @@ export class SteemitClient {
       extensions: [],
     };
 
-    // ref: https://github.dev/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
+    // ref: https://github.com/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
     switch (rewardType) {
       case RewardType.DP: // decline payout, 보상 받지않기
         commentOptions.max_accepted_payout = '0.000 SBD';
-        commentOptions.percent_steem_dollars = 10000;
+        commentOptions.percent_steem_dollars = 0;
         break;
       case RewardType.SP: // 100% steem power payout, 100% 스팀파워로 수령
         commentOptions.max_accepted_payout = '1000000.000 SBD';
