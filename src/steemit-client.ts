@@ -23,7 +23,10 @@ export interface MyCommunity {
 export class SteemitClient {
   private readonly client: Client;
 
-  constructor(private readonly username: string = '', private readonly password: string = '') {
+  constructor(
+    private readonly username: string = '',
+    private readonly password: string = '',
+  ) {
     this.client = new Client('https://api.steemit.com');
   }
 
@@ -82,15 +85,17 @@ export class SteemitClient {
     }
 
     const privateKey = PrivateKey.fromString(this.password);
+
     const data: CommentOperation[1] = {
       parent_author: '', // Leave parent author empty
       parent_permlink: post.category || tags?.[0] || 'steemit', // Main tag
       author: this.username, // Author
       permlink: post.permlink, // Permlink
       title: post.title, // Title
-      body: post.body, // Body
+      body: post.body.replace('\x08', ''), // Body
       json_metadata: JSON.stringify(jsonMetadata), // Json Meta
     };
+
     const commentOptions: CommentOptionsOperation[1] = {
       author: data.author,
       permlink: data.permlink,
