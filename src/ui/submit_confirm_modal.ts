@@ -31,7 +31,7 @@ export class SubmitConfirmModal extends Modal {
     this.close();
   }
 
-  async getCommunityCategories() {
+  async getCommunityCategories(category?: string) {
     const myCommunities = await this.plugin.client?.getMyCommunities();
     const categoryOptions = myCommunities?.reduce<Record<string, string>>(
       (a, b) => ({ ...a, [b.name]: b.title }),
