@@ -20,9 +20,10 @@
     "t": ""
   },
   "engines": {
-    "node": ">= 16",
-    "yarn": ">= 1.22",
-    "npm": "please use yarn"
+    "node": ">=20",
+    "yarn": ">=1.22",
+    "npm": "please use yarn",
+    "pnpm": "please use yarn"
   },
   "keywords": [
     "steem",
