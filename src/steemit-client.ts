@@ -22,6 +22,7 @@ export interface MyCommunity {
   context: string;
 }
 
+const STEEM_RPC_SERVER_LIST = ['https://api.steemit.com'];
 export class SteemitClient {
   private readonly client: Client;
 
@@ -29,7 +30,7 @@ export class SteemitClient {
     private readonly username: string = '',
     private readonly password: string = '',
   ) {
-    this.client = new Client('https://api.steemit.com');
+    this.client = new Client(STEEM_RPC_SERVER_LIST[0]);
   }
 
   getMyCommunities() {
@@ -92,7 +93,8 @@ export class SteemitClient {
       author: this.username, // Author
       permlink: post.permlink, // Permlink
       title: post.title, // Title
-      body: post.body.replace('\x08', ''), // Body
+      // eslint-disable-next-line no-control-regex
+      body: post.body.replace(/\x08/g, ''), // Body
       json_metadata: JSON.stringify(jsonMetadata), // Json Meta
     };
 
