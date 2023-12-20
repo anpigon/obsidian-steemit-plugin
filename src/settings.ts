@@ -3,6 +3,8 @@ import { App, PluginSettingTab, Setting } from 'obsidian';
 import SteemitPlugin from './main';
 import { RewardType, SteemitPluginSettings } from './types';
 
+const safeStorage = window.electron?.remote.safeStorage;
+
 export const DEFAULT_SETTINGS: SteemitPluginSettings = {
   category: '',
   username: '',
@@ -53,6 +55,9 @@ export class SteemitSettingTab extends PluginSettingTab {
           .setPlaceholder('Your password')
           .setValue(this.plugin.settings?.password ?? '')
           .onChange(async value => {
+            if (safeStorage && safeStorage.isEncryptionAvailable() && value) {
+              value = safeStorage.encryptString(value).toString('hex');
+            }
             this.saveSettings('password', value);
           });
         text.inputEl.type = 'password';

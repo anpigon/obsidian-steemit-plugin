@@ -8,6 +8,7 @@ import { SteemitPluginSettings, SteemitPost } from './types';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
 import { parseFrontmatter, parsePostData } from './utils';
 
+const safeStorage = window.electron?.remote.safeStorage;
 export default class SteemitPlugin extends Plugin {
   #settings?: SteemitPluginSettings;
   client?: SteemitClient;
