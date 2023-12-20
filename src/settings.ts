@@ -13,12 +13,10 @@ export const DEFAULT_SETTINGS: SteemitPluginSettings = {
 
 export class SteemitSettingTab extends PluginSettingTab {
   plugin: SteemitPlugin;
-  defaultAppName: string;
 
   constructor(app: App, plugin: SteemitPlugin) {
     super(app, plugin);
     this.plugin = plugin;
-    this.defaultAppName = `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
   }
 
   async saveSettings(name: keyof SteemitPluginSettings, value: string) {
@@ -77,19 +75,7 @@ export class SteemitSettingTab extends PluginSettingTab {
       cb.addOption('50%', 'Default (50% / 50%)');
       cb.addOption('0%', 'Decline Payout');
       cb.setValue('50%');
-      cb.onChange(value => this.saveSettings('rewardType', value))
+      cb.onChange(value => this.saveSettings('rewardType', value));
     });
-
-    new Setting(containerEl)
-      .setName('Metadata AppName (options)')
-      .setDesc('Enter the app name for the metadata to be published.')
-      .addText(text => {
-        text
-          .setPlaceholder(this.defaultAppName)
-          .setValue(this.plugin.settings?.appName || this.defaultAppName)
-          .onChange(async value => {
-            this.saveSettings('appName', value);
-          });
-      });
   }
 }
