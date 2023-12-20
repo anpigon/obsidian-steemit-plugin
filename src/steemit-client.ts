@@ -13,6 +13,8 @@ import {
 import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
 import { getCache, setCache } from './cache';
 
+const safeStorage = window.electron?.remote.safeStorage;
+
 export interface MyCommunity {
   name: string;
   title: string;
@@ -84,8 +86,6 @@ export class SteemitClient {
       jsonMetadata['tags'] = tags;
     }
 
-    const privateKey = PrivateKey.fromString(this.password);
-
     const data: CommentOperation[1] = {
       parent_author: '', // Leave parent author empty
       parent_permlink: post.category || tags?.[0] || 'steemit', // Main tag
@@ -121,6 +121,17 @@ export class SteemitClient {
         commentOptions.max_accepted_payout = '1000000.000 SBD';
         commentOptions.percent_steem_dollars = 10000;
     }
+
+    let password = this.password;
+    if (safeStorage && safeStorage.isEncryptionAvailable() && password) {
+      try {
+        password = safeStorage.decryptString(Buffer.from(password, 'hex'));
+      } catch {
+        // ignore
+      }
+    }
+    const privateKey = PrivateKey.fromString(password);
+
     return this.client.broadcast.commentWithOptions(data, commentOptions, privateKey);
   }
 
