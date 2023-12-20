@@ -6,9 +6,7 @@ import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
 import { SteemitPluginSettings, SteemitPost } from './types';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
-import { parseFrontmatter, parsePostData } from './utils';
-
-const safeStorage = window.electron?.remote.safeStorage;
+import { makeDefaultPermlink, removeObsidianComments, stripFrontmatter } from './utils';
 export default class SteemitPlugin extends Plugin {
   #settings?: SteemitPluginSettings;
   client?: SteemitClient;
@@ -83,6 +81,18 @@ export default class SteemitPlugin extends Plugin {
     return new Promise(resolve => this.app.fileManager.processFrontMatter(file, resolve));
   }
 
+  async parsePostData(file: TFile): Promise<SteemitPost> {
+    const fileContent = await this.app.vault.read(file);
+    const frontMatter = await this.processFrontMatter(file);
+    return {
+      category: frontMatter?.category?.toString() || '',
+      permlink: frontMatter?.permlink?.toString() || makeDefaultPermlink(),
+      title: frontMatter?.title?.toString() || file.basename,
+      tags: frontMatter?.tags?.toString() || '',
+      body: removeObsidianComments(stripFrontmatter(fileContent)),
+    };
+  }
+
   getActiveView() {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!activeView) {
@@ -100,12 +110,12 @@ export default class SteemitPlugin extends Plugin {
       this.client = new SteemitClient(this.settings.username, this.settings.password);
 
       const activeView = this.getActiveView();
-      const data = parsePostData(activeView);
-      if (!data.body) {
+      const post = await this.parsePostData(activeView.file!);
+      if (!post.body) {
         throw new Error('Content is empty.');
       }
 
-      new SubmitConfirmModal(this, data, async (post, postOptions) => {
+      new SubmitConfirmModal(this, post, async (post, postOptions) => {
         if (this.client) {
           try {
             const response = await this.client.newPost(post, postOptions);
@@ -130,7 +140,7 @@ export default class SteemitPlugin extends Plugin {
       }
 
       const frontMatter = stringifyYaml({
-        ...parseFrontmatter(activeView.data),
+        ...(await this.processFrontMatter(activeView.file)),
         category: post.category === '0' ? '' : post.category,
         title: post.title,
         permlink: post.permlink,
