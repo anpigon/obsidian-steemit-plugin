@@ -19,15 +19,11 @@ export class SubmitConfirmModal extends Modal {
   ) {
     super(plugin.app);
 
-    const {
-      rewardType: defaultRewardType,
-      appName: defaultAppName,
-      category: defaultCategory,
-    } = plugin.settings ?? {};
+    const { category: defaultCategory, rewardType: defaultRewardType } = plugin.settings ?? {};
 
     this.postData.category = this.postData.category || defaultCategory || '0';
     this.postOptions.rewardType = defaultRewardType ?? RewardType.DEFAULT;
-    this.postOptions.appName = defaultAppName || `${plugin.manifest.id}/${plugin.manifest.version}`;
+    this.postOptions.appName = `${plugin.manifest.id}/${plugin.manifest.version}`;
   }
 
   async handleSubmit() {
@@ -95,13 +91,6 @@ export class SubmitConfirmModal extends Modal {
       cb.setValue(this.postOptions.rewardType);
       cb.onChange(value => (this.postOptions.rewardType = value as RewardType));
     });
-    new Setting(contentEl)
-      .setName('AppName')
-      .addText(cb => {
-        cb.setValue(this.postOptions.appName);
-        cb.setDisabled(true);
-      })
-      .setClass('no-border');
 
     // buttons
     new Setting(contentEl)
