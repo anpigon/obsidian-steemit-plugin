@@ -2,9 +2,12 @@
   "id": "obsidian-steemit",
   "name": "Steemit",
   "version": "0.2.0",
-  "minAppVersion": "0.15.0",
+  "minAppVersion": "1.4.5",
   "description": "A plugin for publishing Obsidian documents to Steemit.",
   "author": "anpigon",
   "authorUrl": "https://steemit.com/@anpigon",
-  "isDesktopOnly": true
+  "isDesktopOnly": true,
+  "fundingUrl": {
+    "Buy Me a Coffee": "https://www.buymeacoffee.com/anpigon"
+  }
 }
