@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { MarkdownView, Notice, Plugin, stringifyYaml, TFile } from 'obsidian';
+import { FrontMatterCache, MarkdownView, Notice, Plugin, stringifyYaml, TFile } from 'obsidian';
 
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
-import { SubmitConfirmModal } from './ui/submit_confirm_modal';
 import { SteemitPluginSettings, SteemitPost } from './types';
-import { getActiveView, getCachedFrontmatter, parseFrontmatter, parsePostData } from './utils';
+import { SubmitConfirmModal } from './ui/submit_confirm_modal';
+import { parseFrontmatter, parsePostData } from './utils';
 
 export default class SteemitPlugin extends Plugin {
   #settings?: SteemitPluginSettings;
@@ -48,39 +48,38 @@ export default class SteemitPlugin extends Plugin {
 
   async scrapSteemit() {
     try {
-      const { file } = getActiveView();
-      const cachedFrontmatter = getCachedFrontmatter(file);
-      const url = cachedFrontmatter?.url;
+      const activeView = this.getActiveView();
+      if (!activeView || !activeView.file) {
+        throw new Error('There is no active file.');
+      }
+
+      const frontmatter = await this.processFrontMatter(activeView.file);
+      const url = frontmatter?.url;
       if (!url) {
         throw new Error('Front Matter not found. expect a url.');
       }
-      const [, , username, permlink] = new URL(cachedFrontmatter.url).pathname.split('/');
+
+      const [, , username, permlink] = new URL(frontmatter.url).pathname.split('/');
       const res = await new SteemitClient().getPost(username.slice(1), permlink);
       const metadata = JSON.parse(res.json_metadata || '{}');
       const newFrontmatter = stringifyYaml({
-        ...cachedFrontmatter,
+        ...frontmatter,
         category: res.category,
         title: res.title,
         permlink: res.permlink,
         tags: metadata.tags,
       });
       const fileContent = `---\n${newFrontmatter}---\n${res.body}`;
-      await this.app.vault.modify(file, fileContent);
+
+      await this.app.vault.modify(activeView.file, fileContent);
     } catch (ex: any) {
       console.warn(ex);
       new Notice(ex.toString());
     }
   }
 
-  validateFile(file: TFile) {
-    const metadataCache = this.app.metadataCache.getFileCache(file);
-    if (
-      metadataCache?.sections?.findIndex(({ type }) => type === 'yaml') !== -1 &&
-      !metadataCache?.frontmatter
-    ) {
-      throw new Error('Invalid YAML');
-    }
-    return true;
+  async processFrontMatter(file: TFile): Promise<FrontMatterCache> {
+    return new Promise(resolve => this.app.fileManager.processFrontMatter(file, resolve));
   }
 
   getActiveView() {
@@ -91,12 +90,6 @@ export default class SteemitPlugin extends Plugin {
     return activeView;
   }
 
-  getCachedFrontmatter(file: TFile) {
-    const frontmatter = { ...this.app.metadataCache.getFileCache(file)?.frontmatter };
-    delete frontmatter['position'];
-    return frontmatter as Record<string, string>;
-  }
-
   async publishSteemit() {
     try {
       // check username and password
@@ -105,7 +98,8 @@ export default class SteemitPlugin extends Plugin {
       }
       this.client = new SteemitClient(this.settings.username, this.settings.password);
 
-      const data = parsePostData();
+      const activeView = this.getActiveView();
+      const data = parsePostData(activeView);
       if (!data.body) {
         throw new Error('Content is empty.');
       }
@@ -116,9 +110,9 @@ export default class SteemitPlugin extends Plugin {
             const response = await this.client.newPost(post, postOptions);
             await this.updateFileContent(post);
             new Notice(`Post published successfully! ${response.id}`);
-          } catch (ex: any) {
-            console.warn(ex);
-            new Notice(ex.toString());
+          } catch (e: any) {
+            console.warn(e);
+            new Notice(e.toString());
           }
         }
       }).open();
@@ -128,14 +122,24 @@ export default class SteemitPlugin extends Plugin {
   }
 
   async updateFileContent(post: SteemitPost) {
-    const activeView = getActiveView();
-    const frontMatter = stringifyYaml({
-      ...parseFrontmatter(activeView.data),
-      category: post.category === '0' ? '' : post.category,
-      title: post.title,
-      permlink: post.permlink,
-      tags: post.tags,
-    });
-    await this.app.vault.modify(activeView.file, `---\n${frontMatter}---\n${post.body}`);
+    try {
+      const activeView = this.getActiveView();
+      if (!activeView || !activeView.file) {
+        throw new Error('There is no active file.');
+      }
+
+      const frontMatter = stringifyYaml({
+        ...parseFrontmatter(activeView.data),
+        category: post.category === '0' ? '' : post.category,
+        title: post.title,
+        permlink: post.permlink,
+        tags: post.tags,
+      });
+
+      await this.app.vault.modify(activeView.file, `---\n${frontMatter}---\n${post.body}`);
+    } catch (ex: any) {
+      console.warn(ex);
+      new Notice(ex.toString());
+    }
   }
 }
