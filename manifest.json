@@ -1,7 +1,7 @@
 {
   "id": "obsidian-steemit",
   "name": "Steemit",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "minAppVersion": "1.4.5",
   "description": "A plugin for publishing Obsidian documents to Steemit.",
   "author": "anpigon",

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.2](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.1...0.3.2) (2023-12-29)
+
+
+### Bug Fixes
+
+* **settings.ts:** change nullish coalescing operator (??) to logical OR operator (||) for setting default values in text inputs ([7158f1a](https://github.com/anpigon/obsidian-steemit-plugin/commit/7158f1a5acda0499172c85f237b6f925f3edd545))
+
 ### [0.3.1](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.0...0.3.1) (2023-12-29)
 
 
