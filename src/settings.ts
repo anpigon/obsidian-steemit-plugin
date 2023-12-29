@@ -41,7 +41,7 @@ export class SteemitSettingTab extends PluginSettingTab {
       .addText(text => {
         text
           .setPlaceholder('Your username')
-          .setValue(this.plugin.settings?.username ?? '')
+          .setValue(this.plugin.settings?.username || '')
           .onChange(async value => {
             this.saveSettings('username', value);
           });
@@ -53,7 +53,7 @@ export class SteemitSettingTab extends PluginSettingTab {
       .addText(text => {
         text
           .setPlaceholder('Your password')
-          .setValue(this.plugin.settings?.password ?? '')
+          .setValue(this.plugin.settings?.password || '')
           .onChange(async value => {
             if (safeStorage && safeStorage.isEncryptionAvailable() && value) {
               value = safeStorage.encryptString(value).toString('hex');
@@ -69,7 +69,7 @@ export class SteemitSettingTab extends PluginSettingTab {
       .addText(text => {
         text
           .setPlaceholder('ex. hive-101145')
-          .setValue(this.plugin.settings?.category ?? '')
+          .setValue(this.plugin.settings?.category || '')
           .onChange(async value => {
             this.saveSettings('category', value);
           });
@@ -79,7 +79,7 @@ export class SteemitSettingTab extends PluginSettingTab {
       cb.addOption('100%', 'Power Up 100%');
       cb.addOption('50%', 'Default (50% / 50%)');
       cb.addOption('0%', 'Decline Payout');
-      cb.setValue('50%');
+      cb.setValue(this.plugin.settings?.rewardType || '50%');
       cb.onChange(value => this.saveSettings('rewardType', value));
     });
   }
