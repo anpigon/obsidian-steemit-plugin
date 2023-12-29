@@ -24,7 +24,7 @@ export class SubmitConfirmModal extends Modal {
 
   // postOptions 초기화
   private initializePostOptions() {
-    this.postData.category = this.postData.category || this.plugin.settings?.category || '0';
+    this.postData.category = this.postData.category || this.plugin.settings?.category || '';
     this.postOptions.rewardType = this.plugin.settings?.rewardType || RewardType.DEFAULT;
     this.postOptions.appName = `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
   }
@@ -37,7 +37,8 @@ export class SubmitConfirmModal extends Modal {
       {},
     );
     return {
-      '0': 'My Blog',
+      '': 'My Blog',
+      ...(category && { [category]: 'My Blog' }),
       ...categoryOptions,
     };
   }
@@ -62,6 +63,7 @@ export class SubmitConfirmModal extends Modal {
   }
 
   createUI(contentEl: HTMLElement, communityCategories: Record<string, string>) {
+    console.log('communityCategories', communityCategories);
     // get my community categories
     new Setting(contentEl)
       .setName('Community')
@@ -70,6 +72,11 @@ export class SubmitConfirmModal extends Modal {
         cb.addOptions(communityCategories);
         cb.setValue(this.postData.category);
         cb.onChange(value => (this.postData.category = value));
+
+        // 카테고리가 있으면 disabled
+        if (this.postData.category && this.postData.permlink) {
+          cb.setDisabled(true);
+        }
       });
 
     new Setting(contentEl)
@@ -124,7 +131,7 @@ export class SubmitConfirmModal extends Modal {
     contentEl.classList?.add('steem-plugin');
     contentEl.createEl('h2', { text: 'Publish to steemit' });
     const loading = CustomLoadingComponent(contentEl);
-    const communityCategories = await this.getCommunityCategories();
+    const communityCategories = await this.getCommunityCategories(this.postData.category);
     this.createUI(contentEl, communityCategories);
     loading.remove();
   }
