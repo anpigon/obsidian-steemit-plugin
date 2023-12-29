@@ -87,6 +87,49 @@ export class SteemitClient {
     return body.replace(/\x08/g, '');
   }
 
+  setRewardTypeOptions(commentOptions: CommentOptionsOperation[1], rewardType: RewardType) {
+    // ref: https://github.com/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
+    switch (rewardType) {
+      case RewardType.DP: // decline payout, 보상 받지않기
+        commentOptions.max_accepted_payout = '0.000 SBD';
+        commentOptions.percent_steem_dollars = 0;
+        break;
+      case RewardType.SP: // 100% steem power payout, 100% 스팀파워로 수령
+        commentOptions.max_accepted_payout = '1000000.000 SBD';
+        commentOptions.percent_steem_dollars = 0; // 10000 === 100% (of 50%)
+        break;
+      case RewardType.DEFAULT:
+      default: // 50% steem power, 50% sd+steem, 스팀파워 50% + 스팀달러 50%로 수령
+        commentOptions.max_accepted_payout = '1000000.000 SBD';
+        commentOptions.percent_steem_dollars = 10000;
+    }
+  }
+
+  decryptPassword(password: string): string {
+    try {
+      return safeStorage.decryptString(Buffer.from(password, 'hex'));
+    } catch {
+      return password;
+    }
+  }
+
+  broadcastPost(
+    data: CommentOperation[1],
+    commentOptions: CommentOptionsOperation[1],
+    privateKey: PrivateKey,
+    rewardType: RewardType,
+  ) {
+    if (rewardType && rewardType !== RewardType.DEFAULT) {
+      return this.client.broadcast.commentWithOptions(data, commentOptions, privateKey);
+    }
+
+    return this.client.broadcast.comment(data, privateKey);
+  }
+
+  getPost(username: string, permlink: string) {
+    return this.client.database.call('get_content', [username, permlink]);
+  }
+
   publishPost(post: SteemitPost, { rewardType }: SteemitPostOptions) {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
@@ -107,6 +150,16 @@ export class SteemitClient {
       json_metadata: JSON.stringify(jsonMetadata), // Json Meta
     };
 
+    const commentOptions = this.createCommentOptions(data, rewardType);
+    const password = this.decryptPassword(this.password);
+    const privateKey = PrivateKey.fromString(password);
+    return this.broadcastPost(data, commentOptions, privateKey, rewardType);
+  }
+
+  createCommentOptions(
+    data: CommentOperation[1],
+    rewardType: RewardType,
+  ): CommentOptionsOperation[1] {
     const commentOptions: CommentOptionsOperation[1] = {
       author: data.author,
       permlink: data.permlink,
@@ -117,40 +170,13 @@ export class SteemitClient {
       extensions: [],
     };
 
-    let password = this.password;
-    if (safeStorage && safeStorage.isEncryptionAvailable() && password) {
-      try {
-        password = safeStorage.decryptString(Buffer.from(password, 'hex'));
-      } catch {
-        // ignore
-      }
-    }
-    const privateKey = PrivateKey.fromString(password);
-
-    // ref: https://github.com/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
-    switch (rewardType) {
-      case RewardType.DP: // decline payout, 보상 받지않기
-        commentOptions.max_accepted_payout = '0.000 SBD';
-        commentOptions.percent_steem_dollars = 0;
-        break;
-      case RewardType.SP: // 100% steem power payout, 100% 스팀파워로 수령
-        commentOptions.max_accepted_payout = '1000000.000 SBD';
-        commentOptions.percent_steem_dollars = 0; // 10000 === 100% (of 50%)
-        break;
-      case RewardType.DEFAULT:
-      default: // 50% steem power, 50% sd+steem, 스팀파워 50% + 스팀달러 50%로 수령
-        commentOptions.max_accepted_payout = '1000000.000 SBD';
-        commentOptions.percent_steem_dollars = 10000;
+    if (rewardType === RewardType.DP) {
+      commentOptions.max_accepted_payout = '0.000 SBD';
+      commentOptions.percent_steem_dollars = 0;
+    } else if (rewardType === RewardType.SP) {
+      commentOptions.percent_steem_dollars = 0;
     }
 
-    if (rewardType === RewardType.DEFAULT) {
-      return this.client.broadcast.comment(data, privateKey);
-    }
-
-    return this.client.broadcast.commentWithOptions(data, commentOptions, privateKey);
-  }
-
-  getPost(username: string, permlink: string) {
-    return this.client.database.call('get_content', [username, permlink]);
+    return commentOptions;
   }
 }
