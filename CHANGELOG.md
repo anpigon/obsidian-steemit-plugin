@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.4](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.3...0.3.4) (2023-12-29)
+
+
+### Bug Fixes
+
+* **main.ts:** change method name from newPost to publishPost in SteemitPlugin class to improve clarity and semantics ([b735db1](https://github.com/anpigon/obsidian-steemit-plugin/commit/b735db198f495869858cd4f02439fcbfff87d12a))
+* **main.ts:** change private variable name from #settings to _settings for consistency and improve readability ([70ff017](https://github.com/anpigon/obsidian-steemit-plugin/commit/70ff017e5966d4e812ee3c467a0c44f95f925061))
+* **steemit-client.ts:** fix import order to follow convention and improve readability ([c92bce3](https://github.com/anpigon/obsidian-steemit-plugin/commit/c92bce330a66a79ad3f258adb47f6922bfd6ce47))
+
 ### [0.3.3](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.2...0.3.3) (2023-12-29)
 
 
