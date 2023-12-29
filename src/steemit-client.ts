@@ -24,6 +24,7 @@ export interface MyCommunity {
 }
 
 const STEEM_RPC_SERVER_LIST = ['https://api.steemit.com'];
+
 export class SteemitClient {
   private readonly client: Client;
 
@@ -31,25 +32,21 @@ export class SteemitClient {
     private readonly username: string = '',
     private readonly password: string = '',
   ) {
-    this.client = new Client(STEEM_RPC_SERVER_LIST[0]);
+    this.client = this.initializeClient();
   }
 
-  getMyCommunities() {
-    const key = `getMyCommunities_${this.username}`;
+  private initializeClient(): Client {
+    return new Client(STEEM_RPC_SERVER_LIST[0]);
+  }
+
+  async getMyCommunities() {
+    const key = `getMyCommunities`;
     const cached = getCache<MyCommunity[]>(key);
-    if (cached) {
-      return cached;
-    }
-    return this.getAllSubscriptions(this.username).then(r => {
-      const result = r?.map<MyCommunity>(([name, title, role, context]) => ({
-        name,
-        title,
-        role,
-        context,
-      }));
-      setCache(key, result);
-      return result;
-    });
+    if (cached) return cached;
+
+    const communities = await this.getAllSubscriptions(this.username);
+    setCache(key, communities);
+    return communities;
   }
 
   // 유저가 가입한 커뮤니티 리스트 조회
@@ -70,7 +67,13 @@ export class SteemitClient {
       const error = (json as SteemitRPCError).error;
       throw new Error(error.data ?? error.message);
     }
-    return (json as SteemitRPCAllSubscriptions).result;
+    const { result } = json as SteemitRPCAllSubscriptions;
+    return result?.map<MyCommunity>(([name, title, role, context]) => ({
+      name,
+      title,
+      role,
+      context,
+    }));
   }
 
   createTags(post: SteemitPost): string[] | undefined {
