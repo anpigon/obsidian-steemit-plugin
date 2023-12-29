@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.3](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.2...0.3.3) (2023-12-29)
+
+
+### Bug Fixes
+
+* **settings.ts:** fix saveSettings method to correctly handle saving settings and only save if the value has changed ([546ed3e](https://github.com/anpigon/obsidian-steemit-plugin/commit/546ed3efe65ac33e935743b0004d00afa0798589))
+* **settings.ts:** refactor createSetting method to improve readability and maintainability ([d1c8c8a](https://github.com/anpigon/obsidian-steemit-plugin/commit/d1c8c8a178e5f5a9e98d21b8e27cf9ca0a83abb8))
+* **settings.ts:** remove 'password' type from CreateSettingArgs interface and replace it with 'text' type with isSecret flag to improve semantics and security ([699ca46](https://github.com/anpigon/obsidian-steemit-plugin/commit/699ca46777e1173e1fd1b8afaaf9a9a94345fc71))
+* **submit_confirm_modal.ts:** add validation checks for required fields before submitting the form ([ef1b405](https://github.com/anpigon/obsidian-steemit-plugin/commit/ef1b405c5587df7350df605d7568f8d5243ecfcd))
+* **submit_confirm_modal.ts:** fix default category value to be an empty string instead of '0' to improve semantics ([97203b9](https://github.com/anpigon/obsidian-steemit-plugin/commit/97203b9e07fabd6423c36c04303420fdbb3df4ae))
+* **submit_confirm_modal.ts:** fix handleSubmit() method to correctly validate required fields before submitting ([d4874f5](https://github.com/anpigon/obsidian-steemit-plugin/commit/d4874f5ff2c71028c3446dcdea708b54bd01d44d))
+* **submit_confirm_modal.ts:** fix reference to plugin variable to use this.plugin for consistency ([4a2a562](https://github.com/anpigon/obsidian-steemit-plugin/commit/4a2a56247d9af3ebb51199e528cd33594b89fb33))
+* **submit_confirm_modal.ts:** refactor handleSubmit() method to use a separate validateRequiredFields() method for better code organization and reusability ([c305e1d](https://github.com/anpigon/obsidian-steemit-plugin/commit/c305e1d9f8486df1d04054ed84d51b583c9b3bc1))
+* **submit_confirm_modal.ts:** refactor initializePostOptions method to simplify code and improve readability ([40f3b45](https://github.com/anpigon/obsidian-steemit-plugin/commit/40f3b45b0c5fabe5020a0d908ba9d543ddd6fd6d))
+
 ### [0.3.2](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.1...0.3.2) (2023-12-29)
 
 
