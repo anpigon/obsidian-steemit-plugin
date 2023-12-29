@@ -18,12 +18,15 @@ export class SubmitConfirmModal extends Modal {
     readonly callback: (variables: SteemitPost, postOptions: SteemitPostOptions) => void,
   ) {
     super(plugin.app);
+    this.initializePostOptions();
+  }
 
-    const { category: defaultCategory, rewardType: defaultRewardType } = plugin.settings ?? {};
+  private initializePostOptions() {
+    const { category: defaultCategory, rewardType: defaultRewardType } = this.plugin.settings ?? {};
 
     this.postData.category = this.postData.category || defaultCategory || '0';
     this.postOptions.rewardType = defaultRewardType ?? RewardType.DEFAULT;
-    this.postOptions.appName = `${plugin.manifest.id}/${plugin.manifest.version}`;
+    this.postOptions.appName = `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
   }
 
   async handleSubmit() {
