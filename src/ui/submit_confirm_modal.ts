@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import { Modal, Setting } from 'obsidian';
+import { Modal, Notice, Setting } from 'obsidian';
 
 import SteemitPlugin from '../main';
 import { RewardType, SteemitPost, SteemitPostOptions } from '../types';
@@ -43,6 +43,19 @@ export class SubmitConfirmModal extends Modal {
   }
 
   async handleSubmit() {
+    if (!this.postData.permlink) {
+      new Notice('Permlink is required');
+      return;
+    }
+    if (!this.postData.title) {
+      new Notice('Title is required');
+      return;
+    }
+    if (!this.postData.tags) {
+      new Notice('Tags is required');
+      return;
+    }
+
     this.callback(this.postData, this.postOptions);
     this.close();
   }
