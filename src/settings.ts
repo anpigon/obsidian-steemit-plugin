@@ -14,13 +14,14 @@ export const DEFAULT_SETTINGS: SteemitPluginSettings = {
 };
 
 interface CreateSettingArgs {
-  type: 'text' | 'password' | 'dropdown';
+  type: 'text' | 'dropdown';
   key: keyof SteemitPluginSettings;
   name: string;
   desc: string;
   placeholder?: string;
   choices?: { value: string; label: string }[];
   defaultValue?: string;
+  isSecret?: boolean;
 }
 
 export class SteemitSettingTab extends PluginSettingTab {
@@ -40,7 +41,7 @@ export class SteemitSettingTab extends PluginSettingTab {
 
   createSetting(
     containerEl: HTMLElement,
-    { type, key, name, desc, placeholder, choices, defaultValue }: CreateSettingArgs,
+    { type, key, name, desc, placeholder, choices, defaultValue, isSecret }: CreateSettingArgs,
   ) {
     const setting = new Setting(containerEl).setName(name);
 
@@ -50,24 +51,15 @@ export class SteemitSettingTab extends PluginSettingTab {
 
     if (type === 'text') {
       setting.addText(text => {
+        if (isSecret) text.inputEl.type = 'password';
         if (placeholder) text.setPlaceholder(placeholder);
         text.setValue(this.plugin.settings?.[key] || '');
         text.onChange(async value => {
-          this.saveSettings(key, value);
-        });
-      });
-    }
-    if (type === 'password') {
-      setting.addText(text => {
-        if (placeholder) text.setPlaceholder(placeholder);
-        text.setValue(this.plugin.settings?.[key] || '');
-        text.onChange(async value => {
-          if (safeStorage && safeStorage.isEncryptionAvailable() && value) {
+          if (isSecret && safeStorage && safeStorage.isEncryptionAvailable() && value) {
             value = safeStorage.encryptString(value).toString('hex');
           }
           this.saveSettings(key, value);
         });
-        text.inputEl.type = 'password';
       });
     } else if (type === 'dropdown') {
       setting.addDropdown(cb => {
@@ -82,9 +74,7 @@ export class SteemitSettingTab extends PluginSettingTab {
 
   display(): void {
     const { containerEl } = this;
-
     containerEl.empty();
-
     containerEl.createEl('h2', { text: 'Steemit Settings' });
 
     this.createSetting(containerEl, {
@@ -97,7 +87,8 @@ export class SteemitSettingTab extends PluginSettingTab {
     });
 
     this.createSetting(containerEl, {
-      type: 'password',
+      type: 'text',
+      isSecret: true,
       key: 'password',
       name: 'Password',
       desc: 'Enter your Steemit password (your Steemit privateKey for post).',
@@ -113,17 +104,18 @@ export class SteemitSettingTab extends PluginSettingTab {
       placeholder: 'ex. hive-101145',
       defaultValue: this.plugin.settings?.category,
     });
+
     this.createSetting(containerEl, {
       type: 'dropdown',
       key: 'rewardType',
       name: 'Default Rewards',
       desc: 'Choose your default rewards.',
+      defaultValue: this.plugin.settings?.rewardType,
       choices: [
         { value: RewardType.SP, label: 'Power Up 100%' },
         { value: RewardType.DEFAULT, label: 'Default (50% / 50%)' },
         { value: RewardType.DP, label: 'Decline Payout' },
       ],
-      defaultValue: this.plugin.settings?.rewardType,
     });
   }
 }
