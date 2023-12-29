@@ -6,7 +6,13 @@ import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
 import { SteemitPluginSettings, SteemitPost } from './types';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
-import { makeDefaultPermlink, removeObsidianComments, stripFrontmatter } from './utils';
+import {
+  createNewFrontMatter,
+  extractContentBody,
+  makeDefaultPermlink,
+  removeObsidianComments,
+  stripFrontmatter,
+} from './utils';
 export default class SteemitPlugin extends Plugin {
   private _settings?: SteemitPluginSettings;
   readonly appName = `${this.manifest.id}/${this.manifest.version}`;
@@ -97,7 +103,7 @@ export default class SteemitPlugin extends Plugin {
 
   getActiveView() {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!activeView) {
+    if (!activeView || !activeView.file) {
       throw new Error('There is no editor view found.');
     }
     return activeView;
@@ -123,9 +129,9 @@ export default class SteemitPlugin extends Plugin {
             const response = await this.client.publishPost(post, postOptions);
             await this.updateFileContent(post);
             new Notice(`Post published successfully! ${response.id}`);
-          } catch (e: any) {
-            console.warn(e);
-            new Notice(e.toString());
+          } catch (err: any) {
+            console.warn(err);
+            new Notice(err.toString());
           }
         }
       }).open();
@@ -136,23 +142,26 @@ export default class SteemitPlugin extends Plugin {
 
   async updateFileContent(post: SteemitPost) {
     try {
-      const activeView = this.getActiveView();
-      if (!activeView || !activeView.file) {
-        throw new Error('There is no active file.');
-      }
+      const file = this.getActiveView().file!;
 
-      const frontMatter = stringifyYaml({
-        ...(await this.processFrontMatter(activeView.file)),
-        category: post.category === '0' ? '' : post.category,
+      const fileContent = await this.app.vault.read(file!);
+      const frontMatter = await this.processFrontMatter(file!);
+
+      const contentBody = extractContentBody(fileContent);
+      const newFrontMatter = createNewFrontMatter(frontMatter, {
+        category: post.category,
         title: post.title,
         permlink: post.permlink,
         tags: post.tags,
       });
 
-      await this.app.vault.modify(activeView.file, `---\n${frontMatter}---\n${post.body}`);
-    } catch (ex: any) {
-      console.warn(ex);
-      new Notice(ex.toString());
+      const newFileContent = `---\n${stringifyYaml(newFrontMatter)}---\n${contentBody}`;
+
+      // 전체 내용을 파일에 쓴다.
+      return await this.app.vault.modify(file, newFileContent);
+    } catch (err: any) {
+      console.warn(err);
+      new Notice(err.toString());
     }
   }
 }
