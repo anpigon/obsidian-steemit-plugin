@@ -28,6 +28,64 @@ export class SteemitSettingTab extends PluginSettingTab {
     }
   }
 
+  createSetting(
+    containerEl: HTMLElement,
+    {
+      type,
+      key,
+      name,
+      desc,
+      placeholder,
+      choices,
+      defaultValue,
+    }: {
+      type: 'text' | 'password' | 'dropdown';
+      key: keyof SteemitPluginSettings;
+      name: string;
+      desc: string;
+      placeholder?: string;
+      choices?: { value: string; label: string }[];
+      defaultValue?: string;
+    },
+  ) {
+    const setting = new Setting(containerEl).setName(name);
+
+    if (desc) {
+      setting.setDesc(desc);
+    }
+
+    if (type === 'text') {
+      setting.addText(text => {
+        if (placeholder) text.setPlaceholder(placeholder);
+        text.setValue(this.plugin.settings?.[key] || '');
+        text.onChange(async value => {
+          this.saveSettings(key, value);
+        });
+      });
+    }
+    if (type === 'password') {
+      setting.addText(text => {
+        if (placeholder) text.setPlaceholder(placeholder);
+        text.setValue(this.plugin.settings?.[key] || '');
+        text.onChange(async value => {
+          if (safeStorage && safeStorage.isEncryptionAvailable() && value) {
+            value = safeStorage.encryptString(value).toString('hex');
+          }
+          this.saveSettings(key, value);
+        });
+        text.inputEl.type = 'password';
+      });
+    } else if (type === 'dropdown') {
+      setting.addDropdown(cb => {
+        choices?.forEach(choice => {
+          cb.addOption(choice.value, choice.label);
+        });
+        cb.setValue(this.plugin.settings?.[key] || defaultValue || '');
+        cb.onChange(value => this.saveSettings(key, value));
+      });
+    }
+  }
+
   display(): void {
     const { containerEl } = this;
 
@@ -35,52 +93,43 @@ export class SteemitSettingTab extends PluginSettingTab {
 
     containerEl.createEl('h2', { text: 'Steemit Settings' });
 
-    new Setting(containerEl)
-      .setName('Username')
-      .setDesc('Enter your Steemit username')
-      .addText(text => {
-        text
-          .setPlaceholder('Your username')
-          .setValue(this.plugin.settings?.username || '')
-          .onChange(async value => {
-            this.saveSettings('username', value);
-          });
-      });
+    this.createSetting(containerEl, {
+      type: 'text',
+      key: 'username',
+      name: 'Username',
+      desc: 'Enter your Steemit username',
+      placeholder: 'Your username',
+      defaultValue: this.plugin.settings?.username,
+    });
 
-    new Setting(containerEl)
-      .setName('Password')
-      .setDesc('Enter your Steemit password (your Steemit privateKey for post).')
-      .addText(text => {
-        text
-          .setPlaceholder('Your password')
-          .setValue(this.plugin.settings?.password || '')
-          .onChange(async value => {
-            if (safeStorage && safeStorage.isEncryptionAvailable() && value) {
-              value = safeStorage.encryptString(value).toString('hex');
-            }
-            this.saveSettings('password', value);
-          });
-        text.inputEl.type = 'password';
-      });
+    this.createSetting(containerEl, {
+      type: 'password',
+      key: 'password',
+      name: 'Password',
+      desc: 'Enter your Steemit password (your Steemit privateKey for post).',
+      placeholder: 'Your password',
+      defaultValue: this.plugin.settings?.password,
+    });
 
-    new Setting(containerEl)
-      .setName('Default Category (options)')
-      .setDesc('Enter the category you want to post.')
-      .addText(text => {
-        text
-          .setPlaceholder('ex. hive-101145')
-          .setValue(this.plugin.settings?.category || '')
-          .onChange(async value => {
-            this.saveSettings('category', value);
-          });
-      });
-
-    new Setting(containerEl).setName('Default Rewards').addDropdown(cb => {
-      cb.addOption('100%', 'Power Up 100%');
-      cb.addOption('50%', 'Default (50% / 50%)');
-      cb.addOption('0%', 'Decline Payout');
-      cb.setValue(this.plugin.settings?.rewardType || '50%');
-      cb.onChange(value => this.saveSettings('rewardType', value));
+    this.createSetting(containerEl, {
+      type: 'text',
+      key: 'appName',
+      name: 'Default Category (options)',
+      desc: 'Enter the category you want to post.',
+      placeholder: 'ex. hive-101145',
+      defaultValue: this.plugin.settings?.category,
+    });
+    this.createSetting(containerEl, {
+      type: 'dropdown',
+      key: 'rewardType',
+      name: 'Default Rewards',
+      desc: 'Choose your default rewards.',
+      choices: [
+        { value: RewardType.SP, label: 'Power Up 100%' },
+        { value: RewardType.DEFAULT, label: 'Default (50% / 50%)' },
+        { value: RewardType.DP, label: 'Decline Payout' },
+      ],
+      defaultValue: this.plugin.settings?.rewardType,
     });
   }
 }
