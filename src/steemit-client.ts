@@ -150,10 +150,14 @@ export class SteemitClient {
       json_metadata: JSON.stringify(jsonMetadata), // Json Meta
     };
 
+    const privateKey = this.createPrivateKey(this.password);
     const commentOptions = this.createCommentOptions(data, rewardType);
-    const password = this.decryptPassword(this.password);
-    const privateKey = PrivateKey.fromString(password);
     return this.broadcastPost(data, commentOptions, privateKey, rewardType);
+  }
+
+  createPrivateKey(password: string): PrivateKey {
+    const decryptedPassword = this.decryptPassword(password);
+    return PrivateKey.fromString(decryptedPassword);
   }
 
   createCommentOptions(
