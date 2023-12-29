@@ -12,6 +12,7 @@ import {
 } from './types';
 import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
 import { getCache, setCache } from './cache';
+import { DEFAULT_FOOTER } from './constants';
 
 const safeStorage = window.electron?.remote.safeStorage;
 
@@ -87,6 +88,12 @@ export class SteemitClient {
       jsonMetadata['tags'] = tags;
     }
 
+    // eslint-disable-next-line no-control-regex
+    let body = post.body.replace(/\x08/g, '');
+    if (!body.contains(DEFAULT_FOOTER)) {
+      body += `\n\n${DEFAULT_FOOTER}`;
+    }
+
     const data: CommentOperation[1] = {
       parent_author: '', // Leave parent author empty
       parent_permlink: post.category || tags?.[0] || 'steemit', // Main tag
@@ -94,7 +101,7 @@ export class SteemitClient {
       permlink: post.permlink, // Permlink
       title: post.title, // Title
       // eslint-disable-next-line no-control-regex
-      body: post.body.replace(/\x08/g, ''), // Body
+      body, // Body
       json_metadata: JSON.stringify(jsonMetadata), // Json Meta
     };
 
