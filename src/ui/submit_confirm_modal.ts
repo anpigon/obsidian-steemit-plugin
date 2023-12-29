@@ -21,19 +21,14 @@ export class SubmitConfirmModal extends Modal {
     this.initializePostOptions();
   }
 
+  // postOptions 초기화
   private initializePostOptions() {
-    const { category: defaultCategory, rewardType: defaultRewardType } = this.plugin.settings ?? {};
-
-    this.postData.category = this.postData.category || defaultCategory || '0';
-    this.postOptions.rewardType = defaultRewardType ?? RewardType.DEFAULT;
+    this.postData.category = this.postData.category || this.plugin.settings?.category || '0';
+    this.postOptions.rewardType = this.plugin.settings?.rewardType || RewardType.DEFAULT;
     this.postOptions.appName = `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
   }
 
-  async handleSubmit() {
-    this.callback(this.postData, this.postOptions);
-    this.close();
-  }
-
+  // 커뮤니티 카테고리를 가져온다.
   async getCommunityCategories(category?: string) {
     const myCommunities = await this.plugin.client?.getMyCommunities();
     const categoryOptions = myCommunities?.reduce<Record<string, string>>(
@@ -44,6 +39,11 @@ export class SubmitConfirmModal extends Modal {
       '0': 'My Blog',
       ...categoryOptions,
     };
+  }
+
+  async handleSubmit() {
+    this.callback(this.postData, this.postOptions);
+    this.close();
   }
 
   async onOpen() {
@@ -58,35 +58,39 @@ export class SubmitConfirmModal extends Modal {
     // get my community categories
     new Setting(contentEl)
       .setName('Community')
+      .setClass('no-border')
       .addDropdown(async cb => {
         cb.addOptions(communityCategories);
         cb.setValue(this.postData.category);
         cb.onChange(value => (this.postData.category = value));
-      })
-      .setClass('no-border');
+      });
+
     new Setting(contentEl)
       .setName('Permlink')
+      .setClass('full-width')
       .addText(cb => {
         cb.setValue(this.postData.permlink);
         cb.onChange(value => (this.postData.permlink = value));
-      })
-      .setClass('full-width');
+      });
+
     new Setting(contentEl)
       .setName('Title')
+      .setClass('no-border')
+      .setClass('full-width')
       .addText(cb => {
         cb.setValue(this.postData.title);
         cb.onChange(value => (this.postData.title = value));
-      })
-      .setClass('no-border')
-      .setClass('full-width');
+      });
+
     new Setting(contentEl)
       .setName('Tags')
+      .setClass('no-border')
+      .setClass('full-width')
       .addText(cb => {
         cb.setValue(this.postData.tags);
         cb.onChange(value => (this.postData.tags = value));
-      })
-      .setClass('no-border')
-      .setClass('full-width');
+      });
+
     new Setting(contentEl).setName('Rewards').addDropdown(cb => {
       cb.addOption(RewardType.SP, 'Power Up 100%');
       cb.addOption(RewardType.DEFAULT, 'Default (50% / 50%)');
