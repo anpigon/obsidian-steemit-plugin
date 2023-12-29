@@ -42,17 +42,20 @@ export class SubmitConfirmModal extends Modal {
     };
   }
 
+  validateRequiredFields() {
+    const requiredFields: Array<keyof SteemitPost> = ['permlink', 'title', 'tags'];
+    for (const field of requiredFields) {
+      if (!this.postData[field]) {
+        new Notice(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   async handleSubmit() {
-    if (!this.postData.permlink) {
-      new Notice('Permlink is required');
-      return;
-    }
-    if (!this.postData.title) {
-      new Notice('Title is required');
-      return;
-    }
-    if (!this.postData.tags) {
-      new Notice('Tags is required');
+    if (!this.validateRequiredFields()) {
       return;
     }
 
