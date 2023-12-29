@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.5](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.4...0.3.5) (2023-12-29)
+
+
+### Bug Fixes
+
+* **main.ts:** import missing functions from utils file to avoid undefined errors ([69e98e3](https://github.com/anpigon/obsidian-steemit-plugin/commit/69e98e3acd2d6c6d82a1a0e50f793bd0851d7ba4))
+* **main.ts:** import SteemitPostOptions from types to fix missing type error ([32edcfe](https://github.com/anpigon/obsidian-steemit-plugin/commit/32edcfe11072f1873a905af4e14e215994a1d921))
+* **steemit-client.ts:** fix createPrivateKey method to correctly decrypt the password before creating the private key ([9ee652d](https://github.com/anpigon/obsidian-steemit-plugin/commit/9ee652d972b5d50d0504bbf2a91bb02ec87340e9))
+* **steemit-client.ts:** handle case where post tags are undefined in createTags method ([2f10356](https://github.com/anpigon/obsidian-steemit-plugin/commit/2f1035674c9143b3dc220798020a143ae88695fd))
+* **steemit-client.ts:** refactor setRewardTypeOptions method to improve readability and maintainability ([2efbc5c](https://github.com/anpigon/obsidian-steemit-plugin/commit/2efbc5cd8fe2093d98270b16f2155adbdd0efeae))
+
 ### [0.3.4](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.3...0.3.4) (2023-12-29)
 
 
