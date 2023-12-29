@@ -5,6 +5,7 @@ import { Modal, Setting } from 'obsidian';
 import SteemitPlugin from '../main';
 import { RewardType, SteemitPost, SteemitPostOptions } from '../types';
 import CustomLoadingComponent from './loading_component';
+import { RewardTypeOptions } from '../constants';
 
 export class SubmitConfirmModal extends Modal {
   private postOptions: SteemitPostOptions = {
@@ -92,9 +93,9 @@ export class SubmitConfirmModal extends Modal {
       });
 
     new Setting(contentEl).setName('Rewards').addDropdown(cb => {
-      cb.addOption(RewardType.SP, 'Power Up 100%');
-      cb.addOption(RewardType.DEFAULT, 'Default (50% / 50%)');
-      cb.addOption(RewardType.DP, 'Decline Payout');
+      for (const { value, label } of RewardTypeOptions) {
+        cb.addOption(value, label);
+      }
       cb.setValue(this.postOptions.rewardType);
       cb.onChange(value => (this.postOptions.rewardType = value as RewardType));
     });
