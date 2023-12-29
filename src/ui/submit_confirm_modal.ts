@@ -55,23 +55,13 @@ export class SubmitConfirmModal extends Modal {
   }
 
   async handleSubmit() {
-    if (!this.validateRequiredFields()) {
-      return;
+    if (this.validateRequiredFields()) {
+      this.callback(this.postData, this.postOptions);
+      this.close();
     }
-
-    this.callback(this.postData, this.postOptions);
-    this.close();
   }
 
-  async onOpen() {
-    const { contentEl } = this;
-    contentEl.classList?.add('steem-plugin');
-
-    contentEl.createEl('h2', { text: 'Publish to steemit' });
-
-    const loading = CustomLoadingComponent(contentEl);
-    const communityCategories = await this.getCommunityCategories();
-
+  createUI(contentEl: HTMLElement, communityCategories: Record<string, string>) {
     // get my community categories
     new Setting(contentEl)
       .setName('Community')
@@ -127,7 +117,15 @@ export class SubmitConfirmModal extends Modal {
         btn.setButtonText('Publish');
         btn.onClick(() => this.handleSubmit());
       });
+  }
 
+  async onOpen() {
+    const { contentEl } = this;
+    contentEl.classList?.add('steem-plugin');
+    contentEl.createEl('h2', { text: 'Publish to steemit' });
+    const loading = CustomLoadingComponent(contentEl);
+    const communityCategories = await this.getCommunityCategories();
+    this.createUI(contentEl, communityCategories);
     loading.remove();
   }
 
