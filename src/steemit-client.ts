@@ -78,7 +78,7 @@ export class SteemitClient {
   }
 
   createTags(post: SteemitPost): string[] | undefined {
-    return post.tags?.split(/\s|,/).map(tag => tag.trim());
+    return post.tags?.split(/\s|,/).map(tag => tag.trim()) ?? [];
   }
 
   appendDefaultFooter({ body }: SteemitPost): string {
@@ -114,16 +114,20 @@ export class SteemitClient {
   }
 
   broadcastPost(
-    data: CommentOperation[1],
-    commentOptions: CommentOptionsOperation[1],
+    commentOperation: CommentOperation[1],
+    commentOptionsOperation: CommentOptionsOperation[1],
     privateKey: PrivateKey,
     rewardType: RewardType,
   ) {
     if (rewardType && rewardType !== RewardType.DEFAULT) {
-      return this.client.broadcast.commentWithOptions(data, commentOptions, privateKey);
+      return this.client.broadcast.commentWithOptions(
+        commentOperation,
+        commentOptionsOperation,
+        privateKey,
+      );
     }
 
-    return this.client.broadcast.comment(data, privateKey);
+    return this.client.broadcast.comment(commentOperation, privateKey);
   }
 
   getPost(username: string, permlink: string) {
@@ -131,28 +135,28 @@ export class SteemitClient {
   }
 
   publishPost(post: SteemitPost, { rewardType }: SteemitPostOptions) {
+    const commentOperation = this.createCommentOperation(post);
+    const privateKey = this.createPrivateKey(this.password);
+    const commentOptions = this.createCommentOptions(commentOperation, rewardType);
+    return this.broadcastPost(commentOperation, commentOptions, privateKey, rewardType);
+  }
+
+  createCommentOperation(post: SteemitPost): CommentOperation[1] {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
       app: this.appName,
+      tags: this.createTags(post),
     };
 
-    const body = this.appendDefaultFooter(post);
-    const tags = this.createTags(post);
-    if (tags?.length) jsonMetadata['tags'] = tags;
-
-    const data: CommentOperation[1] = {
+    return {
       parent_author: '', // Leave parent author empty
-      parent_permlink: post.category || tags?.[0] || 'steemit', // Main tag
+      parent_permlink: post.category || jsonMetadata.tags?.[0] || 'steemit', // Main tag
       author: this.username, // Author
       permlink: post.permlink, // Permlink
       title: post.title, // Title
-      body, // Body
+      body: this.appendDefaultFooter(post), // Body
       json_metadata: JSON.stringify(jsonMetadata), // Json Meta
     };
-
-    const privateKey = this.createPrivateKey(this.password);
-    const commentOptions = this.createCommentOptions(data, rewardType);
-    return this.broadcastPost(data, commentOptions, privateKey, rewardType);
   }
 
   createPrivateKey(password: string): PrivateKey {
