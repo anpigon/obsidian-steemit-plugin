@@ -8,11 +8,12 @@ import { SteemitPluginSettings, SteemitPost } from './types';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
 import { makeDefaultPermlink, removeObsidianComments, stripFrontmatter } from './utils';
 export default class SteemitPlugin extends Plugin {
-  #settings?: SteemitPluginSettings;
+  private _settings?: SteemitPluginSettings;
+  readonly appName = `${this.manifest.id}/${this.manifest.version}`;
   client?: SteemitClient;
 
   get settings() {
-    return this.#settings;
+    return this._settings;
   }
 
   async onload() {
@@ -25,6 +26,7 @@ export default class SteemitPlugin extends Plugin {
       name: 'Publish to Steemit',
       callback: () => this.publishSteemit(),
     });
+
     this.addCommand({
       id: 'obsidian-steemit-import-from-url',
       name: 'Import from url',
@@ -34,15 +36,15 @@ export default class SteemitPlugin extends Plugin {
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new SteemitSettingTab(this.app, this));
 
-    this.client = new SteemitClient(this.settings?.username, this.settings?.password);
+    this.client = new SteemitClient(this.settings?.username, this.settings?.password, this.appName);
   }
 
   async loadSettings() {
-    this.#settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this._settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
   async saveSettings() {
-    await this.saveData(this.#settings);
+    await this.saveData(this._settings);
   }
 
   async scrapSteemit() {

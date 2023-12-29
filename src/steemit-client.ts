@@ -31,6 +31,7 @@ export class SteemitClient {
   constructor(
     private readonly username: string = '',
     private readonly password: string = '',
+    private readonly appName: string = 'obsidian-steemit',
   ) {
     this.client = this.initializeClient();
   }
@@ -86,18 +87,15 @@ export class SteemitClient {
     return body.replace(/\x08/g, '');
   }
 
-  publishPost(post: SteemitPost, { appName, rewardType }: SteemitPostOptions) {
+  publishPost(post: SteemitPost, { rewardType }: SteemitPostOptions) {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
-      app: appName,
+      app: this.appName,
     };
 
-    const tags = this.createTags(post);
-    if (tags && tags.length) {
-      jsonMetadata['tags'] = tags;
-    }
-
     const body = this.appendDefaultFooter(post);
+    const tags = this.createTags(post);
+    if (tags?.length) jsonMetadata['tags'] = tags;
 
     const data: CommentOperation[1] = {
       parent_author: '', // Leave parent author empty
