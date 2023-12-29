@@ -1,7 +1,10 @@
-import { request } from 'obsidian';
 import { Client } from 'dsteem/lib/client';
 import { PrivateKey } from 'dsteem/lib/crypto';
+import { request } from 'obsidian';
 
+import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
+import { getCache, setCache } from './cache';
+import { DEFAULT_FOOTER } from './constants';
 import {
   RewardType,
   SteemitJsonMetadata,
@@ -10,9 +13,6 @@ import {
   SteemitRPCAllSubscriptions,
   SteemitRPCError,
 } from './types';
-import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
-import { getCache, setCache } from './cache';
-import { DEFAULT_FOOTER } from './constants';
 
 const safeStorage = window.electron?.remote.safeStorage;
 
@@ -73,26 +73,28 @@ export class SteemitClient {
     return (json as SteemitRPCAllSubscriptions).result;
   }
 
+  createTags(post: SteemitPost): string[] | undefined {
+    return post.tags?.split(/\s|,/).map(tag => tag.trim());
+  }
+
+  appendDefaultFooter({ body }: SteemitPost): string {
+    if (!body.contains(DEFAULT_FOOTER)) body += `\n\n${DEFAULT_FOOTER}`;
+    // eslint-disable-next-line no-control-regex
+    return body.replace(/\x08/g, '');
+  }
+
   newPost(post: SteemitPost, { appName, rewardType }: SteemitPostOptions) {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
       app: appName,
     };
 
-    if (!post.category || post.category === '0') {
-      post.category = '';
-    }
-
-    const tags = post.tags?.split(/\s|,/).map(tag => tag.trim());
+    const tags = this.createTags(post);
     if (tags && tags.length) {
       jsonMetadata['tags'] = tags;
     }
 
-    // eslint-disable-next-line no-control-regex
-    let body = post.body.replace(/\x08/g, '');
-    if (!body.contains(DEFAULT_FOOTER)) {
-      body += `\n\n${DEFAULT_FOOTER}`;
-    }
+    const body = this.appendDefaultFooter(post);
 
     const data: CommentOperation[1] = {
       parent_author: '', // Leave parent author empty
@@ -100,7 +102,6 @@ export class SteemitClient {
       author: this.username, // Author
       permlink: post.permlink, // Permlink
       title: post.title, // Title
-      // eslint-disable-next-line no-control-regex
       body, // Body
       json_metadata: JSON.stringify(jsonMetadata), // Json Meta
     };
@@ -114,6 +115,16 @@ export class SteemitClient {
       allow_curation_rewards: true,
       extensions: [],
     };
+
+    let password = this.password;
+    if (safeStorage && safeStorage.isEncryptionAvailable() && password) {
+      try {
+        password = safeStorage.decryptString(Buffer.from(password, 'hex'));
+      } catch {
+        // ignore
+      }
+    }
+    const privateKey = PrivateKey.fromString(password);
 
     // ref: https://github.com/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
     switch (rewardType) {
@@ -131,15 +142,9 @@ export class SteemitClient {
         commentOptions.percent_steem_dollars = 10000;
     }
 
-    let password = this.password;
-    if (safeStorage && safeStorage.isEncryptionAvailable() && password) {
-      try {
-        password = safeStorage.decryptString(Buffer.from(password, 'hex'));
-      } catch {
-        // ignore
-      }
+    if (rewardType === RewardType.DEFAULT) {
+      return this.client.broadcast.comment(data, privateKey);
     }
-    const privateKey = PrivateKey.fromString(password);
 
     return this.client.broadcast.commentWithOptions(data, commentOptions, privateKey);
   }
