@@ -14,16 +14,16 @@ export const DEFAULT_SETTINGS: SteemitPluginSettings = {
 };
 
 export class SteemitSettingTab extends PluginSettingTab {
-  plugin: SteemitPlugin;
+  private readonly plugin: SteemitPlugin;
 
   constructor(app: App, plugin: SteemitPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
 
-  async saveSettings(name: keyof SteemitPluginSettings, value: string) {
-    if (this.plugin.settings) {
-      (this.plugin.settings as any)[name] = value;
+  async saveSettings(name: keyof SteemitPluginSettings, value: string | RewardType) {
+    if (this.plugin.settings && this.plugin.settings[name] !== value) {
+      this.plugin.settings[name] = value as RewardType;
       await this.plugin.saveSettings();
     }
   }
