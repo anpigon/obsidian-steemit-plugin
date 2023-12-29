@@ -13,6 +13,16 @@ export const DEFAULT_SETTINGS: SteemitPluginSettings = {
   rewardType: RewardType.DEFAULT,
 };
 
+interface CreateSettingArgs {
+  type: 'text' | 'password' | 'dropdown';
+  key: keyof SteemitPluginSettings;
+  name: string;
+  desc: string;
+  placeholder?: string;
+  choices?: { value: string; label: string }[];
+  defaultValue?: string;
+}
+
 export class SteemitSettingTab extends PluginSettingTab {
   private readonly plugin: SteemitPlugin;
 
@@ -30,23 +40,7 @@ export class SteemitSettingTab extends PluginSettingTab {
 
   createSetting(
     containerEl: HTMLElement,
-    {
-      type,
-      key,
-      name,
-      desc,
-      placeholder,
-      choices,
-      defaultValue,
-    }: {
-      type: 'text' | 'password' | 'dropdown';
-      key: keyof SteemitPluginSettings;
-      name: string;
-      desc: string;
-      placeholder?: string;
-      choices?: { value: string; label: string }[];
-      defaultValue?: string;
-    },
+    { type, key, name, desc, placeholder, choices, defaultValue }: CreateSettingArgs,
   ) {
     const setting = new Setting(containerEl).setName(name);
 
