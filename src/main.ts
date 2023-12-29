@@ -4,7 +4,7 @@ import { FrontMatterCache, MarkdownView, Notice, Plugin, stringifyYaml, TFile } 
 
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
-import { SteemitPluginSettings, SteemitPost } from './types';
+import { SteemitPluginSettings, SteemitPost, SteemitPostOptions } from './types';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
 import {
   createNewFrontMatter,
@@ -124,44 +124,49 @@ export default class SteemitPlugin extends Plugin {
       }
 
       new SubmitConfirmModal(this, post, async (post, postOptions) => {
-        if (this.client) {
-          try {
-            const response = await this.client.publishPost(post, postOptions);
-            await this.updateFileContent(post);
-            new Notice(`Post published successfully! ${response.id}`);
-          } catch (err: any) {
-            console.warn(err);
-            new Notice(err.toString());
-          }
-        }
+        await this.publishAndUpdate(post, postOptions, activeView.file!);
       }).open();
     } catch (e: any) {
       new Notice(e.toString());
     }
   }
 
-  async updateFileContent(post: SteemitPost) {
-    try {
-      const file = this.getActiveView().file!;
-
-      const fileContent = await this.app.vault.read(file!);
-      const frontMatter = await this.processFrontMatter(file!);
-
-      const contentBody = extractContentBody(fileContent);
-      const newFrontMatter = createNewFrontMatter(frontMatter, {
-        category: post.category,
-        title: post.title,
-        permlink: post.permlink,
-        tags: post.tags,
-      });
-
-      const newFileContent = `---\n${stringifyYaml(newFrontMatter)}---\n${contentBody}`;
-
-      // 전체 내용을 파일에 쓴다.
-      return await this.app.vault.modify(file, newFileContent);
-    } catch (err: any) {
-      console.warn(err);
-      new Notice(err.toString());
+  async publishAndUpdate(post: SteemitPost, postOptions: SteemitPostOptions, file: TFile) {
+    if (this.client) {
+      try {
+        const response = await this.client.publishPost(post, postOptions);
+        await this.updateFileContent(post, file);
+        new Notice(`Post published successfully! ${response.id}`);
+      } catch (err: any) {
+        console.warn(err);
+        new Notice(err.toString());
+      }
     }
+  }
+
+  async updateFileContent(post: SteemitPost, file: TFile) {
+    const { frontMatter, contentBody } = await this.readFileAndProcessFrontMatter(file);
+    const newFileContent = this.createNewFileContent(frontMatter, contentBody, post);
+    return await this.app.vault.modify(file, newFileContent);
+  }
+
+  createNewFileContent(frontMatter: any, contentBody: string, post: SteemitPost): string {
+    const newFrontMatter = createNewFrontMatter(frontMatter, {
+      category: post.category,
+      title: post.title,
+      permlink: post.permlink,
+      tags: post.tags,
+    });
+
+    return `---\n${stringifyYaml(newFrontMatter)}---\n${contentBody}`;
+  }
+
+  async readFileAndProcessFrontMatter(
+    file: TFile,
+  ): Promise<{ fileContent: string; frontMatter: FrontMatterCache; contentBody: string }> {
+    const fileContent = await this.app.vault.read(file);
+    const frontMatter = await this.processFrontMatter(file);
+    const contentBody = extractContentBody(fileContent);
+    return { fileContent, frontMatter, contentBody };
   }
 }
