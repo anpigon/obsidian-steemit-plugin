@@ -10,7 +10,6 @@ import { RewardTypeOptions } from '../constants';
 export class SubmitConfirmModal extends Modal {
   private postOptions: SteemitPostOptions = {
     rewardType: RewardType.DEFAULT,
-    appName: '',
   };
 
   constructor(
@@ -26,7 +25,6 @@ export class SubmitConfirmModal extends Modal {
   private initializePostOptions() {
     this.postData.category = this.postData.category || this.plugin.settings?.category || '';
     this.postOptions.rewardType = this.plugin.settings?.rewardType || RewardType.DEFAULT;
-    this.postOptions.appName = `${this.plugin.manifest.id}/${this.plugin.manifest.version}`;
   }
 
   // 커뮤니티 카테고리를 가져온다.

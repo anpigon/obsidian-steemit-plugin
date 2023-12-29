@@ -25,11 +25,11 @@ interface CreateSettingArgs {
 }
 
 export class SteemitSettingTab extends PluginSettingTab {
-  private readonly plugin: SteemitPlugin;
-
-  constructor(app: App, plugin: SteemitPlugin) {
+  constructor(
+    app: App,
+    private readonly plugin: SteemitPlugin,
+  ) {
     super(app, plugin);
-    this.plugin = plugin;
   }
 
   async saveSettings(name: keyof SteemitPluginSettings, value: string | RewardType) {

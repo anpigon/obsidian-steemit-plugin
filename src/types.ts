@@ -41,7 +41,7 @@ export interface SteemitPost {
 
 export interface SteemitPostOptions {
   rewardType: RewardType;
-  appName: string;
+  // appName: string;
 }
 
 export interface SteemitRPCError {
