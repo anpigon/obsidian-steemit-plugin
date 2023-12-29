@@ -118,7 +118,7 @@ export default class SteemitPlugin extends Plugin {
       new SubmitConfirmModal(this, post, async (post, postOptions) => {
         if (this.client) {
           try {
-            const response = await this.client.newPost(post, postOptions);
+            const response = await this.client.publishPost(post, postOptions);
             await this.updateFileContent(post);
             new Notice(`Post published successfully! ${response.id}`);
           } catch (e: any) {

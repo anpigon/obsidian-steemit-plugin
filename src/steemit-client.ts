@@ -86,7 +86,7 @@ export class SteemitClient {
     return body.replace(/\x08/g, '');
   }
 
-  newPost(post: SteemitPost, { appName, rewardType }: SteemitPostOptions) {
+  publishPost(post: SteemitPost, { appName, rewardType }: SteemitPostOptions) {
     const jsonMetadata: SteemitJsonMetadata = {
       format: 'markdown',
       app: appName,
