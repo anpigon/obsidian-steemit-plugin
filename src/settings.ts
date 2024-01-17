@@ -2,8 +2,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import SteemitPlugin from './main';
 import { RewardType, SteemitPluginSettings } from './types';
-
-const safeStorage = window.electron?.remote.safeStorage;
+import Encrypt from './encrypt';
 
 export const DEFAULT_SETTINGS: SteemitPluginSettings = {
   category: '',
@@ -55,8 +54,8 @@ export class SteemitSettingTab extends PluginSettingTab {
         if (placeholder) text.setPlaceholder(placeholder);
         text.setValue(this.plugin.settings?.[key] || '');
         text.onChange(async value => {
-          if (isSecret && safeStorage && safeStorage.isEncryptionAvailable() && value) {
-            value = safeStorage.encryptString(value).toString('hex');
+          if (isSecret && value) {
+            value = Encrypt.encryptString(value);
           }
           this.saveSettings(key, value);
         });

@@ -13,8 +13,7 @@ import {
   SteemitRPCAllSubscriptions,
   SteemitRPCError,
 } from './types';
-
-const safeStorage = window.electron?.remote.safeStorage;
+import Encrypt from './encrypt';
 
 export interface MyCommunity {
   name: string;
@@ -107,7 +106,7 @@ export class SteemitClient {
 
   decryptPassword(password: string): string {
     try {
-      return safeStorage.decryptString(Buffer.from(password, 'hex'));
+      return Encrypt.decryptString(password);
     } catch {
       return password;
     }
