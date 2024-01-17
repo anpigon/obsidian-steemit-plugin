@@ -108,8 +108,9 @@ export class SteemitClient {
     try {
       return Encrypt.decryptString(password);
     } catch {
-      return password;
+      console.error('Failed to decrypt password');
     }
+    return password;
   }
 
   broadcastPost(
