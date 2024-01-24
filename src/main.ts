@@ -181,13 +181,18 @@ export default class SteemitPlugin extends Plugin {
       this.client = new SteemitClient(this.settings.username, this.settings.password);
 
       const activeView = this.getActiveView();
-      const post = await this.parsePostData(activeView.file!);
+      const file = activeView.file;
+      if (!file) {
+        throw new Error('There is no active file.');
+      }
+
+      const post = await this.parsePostData(file);
       if (!post.body) {
         throw new Error('Content is empty.');
       }
 
       new SubmitConfirmModal(this, post, async (post, postOptions) => {
-        await this.publishAndUpdate(post, postOptions, activeView.file!);
+        await this.publishAndUpdate(post, postOptions, file);
       }).open();
     } catch (e: any) {
       new Notice(e.toString());
@@ -208,12 +213,9 @@ export default class SteemitPlugin extends Plugin {
   }
 
   async updateFileContent(post: SteemitPost, file: TFile) {
-    const { frontMatter, contentBody } = await this.readFileAndProcessFrontMatter(file);
-    const newFileContent = this.createNewFileContent(frontMatter, contentBody, post);
-    return await this.app.vault.modify(file, newFileContent);
-  }
-
-  createNewFileContent(frontMatter: any, contentBody: string, post: SteemitPost): string {
+    const fileContent = await this.app.vault.read(file);
+    const frontMatter = await this.processFrontMatter(file);
+    const contentBody = extractContentBody(fileContent);
     const newFrontMatter = createNewFrontMatter(frontMatter, {
       category: post.category,
       title: post.title,
@@ -221,15 +223,7 @@ export default class SteemitPlugin extends Plugin {
       tags: post.tags,
     });
 
-    return `---\n${stringifyYaml(newFrontMatter)}---\n${contentBody}`;
-  }
-
-  async readFileAndProcessFrontMatter(
-    file: TFile,
-  ): Promise<{ fileContent: string; frontMatter: FrontMatterCache; contentBody: string }> {
-    const fileContent = await this.app.vault.read(file);
-    const frontMatter = await this.processFrontMatter(file);
-    const contentBody = extractContentBody(fileContent);
-    return { fileContent, frontMatter, contentBody };
+    const newFileContent = `---\n${stringifyYaml(newFrontMatter)}---\n${contentBody}`;
+    return await this.app.vault.modify(file, newFileContent);
   }
 }
