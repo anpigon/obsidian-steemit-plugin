@@ -1,6 +1,14 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FrontMatterCache, MarkdownView, Notice, Plugin, stringifyYaml, TFile } from 'obsidian';
+import {
+  FrontMatterCache,
+  getLinkpath,
+  MarkdownView,
+  Notice,
+  Plugin,
+  stringifyYaml,
+  TFile,
+} from 'obsidian';
 
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitClient } from './steemit-client';
@@ -92,13 +100,68 @@ export default class SteemitPlugin extends Plugin {
   async parsePostData(file: TFile): Promise<SteemitPost> {
     const fileContent = await this.app.vault.read(file);
     const frontMatter = await this.processFrontMatter(file);
+    const body = await this.renderLinksToFullPath(
+      removeObsidianComments(stripFrontmatter(fileContent)),
+      file.path,
+    );
     return {
       category: frontMatter?.category?.toString() || '',
       permlink: frontMatter?.permlink?.toString() || makeDefaultPermlink(),
       title: frontMatter?.title?.toString() || file.basename,
       tags: frontMatter?.tags?.toString() || '',
-      body: removeObsidianComments(stripFrontmatter(fileContent)),
+      body,
     };
+  }
+
+  async renderLinksToFullPath(text: string, filePath: string): Promise<string> {
+    let result = text.toString();
+
+    const linkedFileRegex = /\[\[(.*?)\]\]/g;
+    const linkedFileMatches = result.match(linkedFileRegex);
+
+    if (linkedFileMatches) {
+      for (const linkMatch of linkedFileMatches) {
+        try {
+          const textInsideBrackets = linkMatch.substring(
+            linkMatch.indexOf('[') + 2,
+            linkMatch.lastIndexOf(']') - 1,
+          );
+          let [linkedFileName, prettyName] = textInsideBrackets.split('|');
+
+          prettyName = prettyName || linkedFileName;
+          if (linkedFileName.includes('#')) {
+            const headerSplit = linkedFileName.split('#');
+            linkedFileName = headerSplit[0];
+          }
+          const linkedFile = this.app.metadataCache.getFirstLinkpathDest(
+            getLinkpath(linkedFileName),
+            filePath,
+          );
+          if (!linkedFile) {
+            // 내부 파일 링크가 없는 경우 prettyName만 표시한다.
+            result = result.replace(linkMatch, prettyName);
+          }
+          if (linkedFile?.extension === 'md') {
+            const frontmatter = this.app.metadataCache.getFileCache(linkedFile)?.frontmatter;
+            if (frontmatter && 'permlink' in frontmatter) {
+              const { permlink, title } = frontmatter;
+              result = result.replace(
+                linkMatch,
+                `[${title || prettyName}](/@${this.settings?.username ?? ''}/${permlink})`,
+              );
+            } else {
+              // 내부 파일 링크가 tistoryPostUrl이 없는 경우 prettyName만 표시한다.
+              result = result.replace(linkMatch, prettyName);
+            }
+          }
+        } catch (e) {
+          console.log(e);
+          continue;
+        }
+      }
+    }
+
+    return result;
   }
 
   getActiveView() {
