@@ -12,7 +12,7 @@ import {
   SteemitPostOptions,
   SteemitRPCAllSubscriptions,
   SteemitRPCError,
-} from './types';
+} from '../types';
 import Encrypt from './encrypt';
 
 export interface MyCommunity {

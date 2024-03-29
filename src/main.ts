@@ -11,7 +11,7 @@ import {
 } from 'obsidian';
 
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
-import { SteemitClient } from './steemit-client';
+import { SteemitClient } from './helpers/steemit-client';
 import { SteemitPluginSettings, SteemitPost, SteemitPostOptions } from './types';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
 import {
@@ -20,7 +20,7 @@ import {
   makeDefaultPermlink,
   removeObsidianComments,
   stripFrontmatter,
-} from './utils';
+} from './helpers/utils';
 export default class SteemitPlugin extends Plugin {
   private _settings?: SteemitPluginSettings;
   readonly appName = `${this.manifest.id}/${this.manifest.version}`;

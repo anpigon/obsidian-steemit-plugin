@@ -2,7 +2,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import SteemitPlugin from './main';
 import { RewardType, SteemitPluginSettings } from './types';
-import Encrypt from './encrypt';
+import Encrypt from './helpers/encrypt';
 
 export const DEFAULT_SETTINGS: SteemitPluginSettings = {
   category: '',
