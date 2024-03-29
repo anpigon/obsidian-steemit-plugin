@@ -5,7 +5,7 @@ import { Modal, Notice, Setting } from 'obsidian';
 import SteemitPlugin from '../main';
 import { RewardType, SteemitPost, SteemitPostOptions } from '../types';
 import CustomLoadingComponent from './loading_component';
-import { RewardTypeOptions } from '../constants';
+import { RewardTypeOptions } from '../helpers/constants';
 
 export class SubmitConfirmModal extends Modal {
   private postOptions: SteemitPostOptions = {
