@@ -93,13 +93,13 @@ export default class SteemitPlugin extends Plugin {
       }
 
       const file = this.getActiveViewFile();
-
       const post = await new Publisher(this).generate(file);
       if (!post.body) {
         throw new Error('Content is empty.');
       }
 
       this.client = new SteemitClient(this.settings.username, this.settings.password);
+
       new SubmitConfirmModal(this, post, async (post, postOptions) => {
         await this.publishAndUpdate(post, postOptions, file);
       }).open();
