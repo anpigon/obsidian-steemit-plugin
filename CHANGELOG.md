@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.2](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.4.1...0.4.2) (2024-03-29)
+
+
+### Bug Fixes
+
+* query parameter in publisher.ts ([aee9d72](https://github.com/anpigon/obsidian-steemit-plugin/commit/aee9d725eaf5452e4f31f2960de1de01869eb380))
+
 ### [0.4.1](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.4.0...0.4.1) (2024-03-29)
 
 ## [0.4.0](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.8...0.4.0) (2024-03-29)
