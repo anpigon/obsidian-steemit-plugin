@@ -9,11 +9,13 @@ export class Publisher {
 
   async generate(file: TFile): Promise<SteemitPost> {
     const frontMatter = await this.processFrontMatter(file);
-    const markdown = await this.plugin.app.vault.read(file);
-    const body = await this.renderLinksToFullPath(
-      removeObsidianComments(stripFrontmatter(markdown)),
-      file.path,
-    );
+	
+    let body = await this.plugin.app.vault.read(file);
+    body = stripFrontmatter(body);
+    body = removeObsidianComments(body);
+    body = await this.renderDataViews(body);
+    body = await this.renderLinksToFullPath(body, file.path);
+
     const results = {
       category: frontMatter?.category?.toString() || '',
       permlink: frontMatter?.permlink?.toString() || makeDefaultPermlink(),
