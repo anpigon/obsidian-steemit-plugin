@@ -3,8 +3,6 @@ import { PrivateKey } from 'dsteem/lib/crypto';
 import { request } from 'obsidian';
 
 import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
-import { getCache, setCache } from './cache';
-import { DEFAULT_FOOTER } from './constants';
 import {
   RewardType,
   SteemitJsonMetadata,
@@ -13,6 +11,8 @@ import {
   SteemitRPCAllSubscriptions,
   SteemitRPCError,
 } from '../types';
+import { getCache, setCache } from './cache';
+import { DEFAULT_FOOTER } from './constants';
 import Encrypt from './encrypt';
 
 export interface MyCommunity {

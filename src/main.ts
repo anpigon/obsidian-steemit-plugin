@@ -21,6 +21,7 @@ import {
   removeObsidianComments,
   stripFrontmatter,
 } from './helpers/utils';
+import { Publisher } from './helpers/publisher';
 export default class SteemitPlugin extends Plugin {
   private _settings?: SteemitPluginSettings;
   readonly appName = `${this.manifest.id}/${this.manifest.version}`;
@@ -68,7 +69,7 @@ export default class SteemitPlugin extends Plugin {
         throw new Error('There is no active file.');
       }
 
-      const frontmatter = await this.processFrontMatter(activeView.file);
+      const frontmatter = await new Publisher(this).processFrontMatter(activeView.file);
       const url = frontmatter?.url;
       if (!url) {
         throw new Error('Front Matter not found. expect a url.');
@@ -91,26 +92,6 @@ export default class SteemitPlugin extends Plugin {
       console.warn(ex);
       new Notice(ex.toString());
     }
-  }
-
-  async processFrontMatter(file: TFile): Promise<FrontMatterCache> {
-    return new Promise(resolve => this.app.fileManager.processFrontMatter(file, resolve));
-  }
-
-  async parsePostData(file: TFile): Promise<SteemitPost> {
-    const fileContent = await this.app.vault.read(file);
-    const frontMatter = await this.processFrontMatter(file);
-    const body = await this.renderLinksToFullPath(
-      removeObsidianComments(stripFrontmatter(fileContent)),
-      file.path,
-    );
-    return {
-      category: frontMatter?.category?.toString() || '',
-      permlink: frontMatter?.permlink?.toString() || makeDefaultPermlink(),
-      title: frontMatter?.title?.toString() || file.basename,
-      tags: frontMatter?.tags?.toString() || '',
-      body,
-    };
   }
 
   async renderLinksToFullPath(text: string, filePath: string): Promise<string> {
@@ -190,7 +171,7 @@ export default class SteemitPlugin extends Plugin {
         throw new Error('There is no active file.');
       }
 
-      const post = await this.parsePostData(file);
+      const post = await new Publisher(this).generate(file);
       if (!post.body) {
         throw new Error('Content is empty.');
       }
@@ -218,7 +199,7 @@ export default class SteemitPlugin extends Plugin {
 
   async updateFileContent(post: SteemitPost, file: TFile) {
     const fileContent = await this.app.vault.read(file);
-    const frontMatter = await this.processFrontMatter(file);
+    const frontMatter = await new Publisher(this).processFrontMatter(file);
     const contentBody = extractContentBody(fileContent);
     const newFrontMatter = createNewFrontMatter(frontMatter, {
       category: post.category,
