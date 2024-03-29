@@ -61,7 +61,6 @@ export class SubmitConfirmModal extends Modal {
   }
 
   createUI(contentEl: HTMLElement, communityCategories: Record<string, string>) {
-    console.log('communityCategories', communityCategories);
     // get my community categories
     new Setting(contentEl)
       .setName('Community')

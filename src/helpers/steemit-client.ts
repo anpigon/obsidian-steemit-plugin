@@ -3,8 +3,6 @@ import { PrivateKey } from 'dsteem/lib/crypto';
 import { request } from 'obsidian';
 
 import { CommentOperation, CommentOptionsOperation } from 'dsteem/lib/steem/operation';
-import { getCache, setCache } from './cache';
-import { DEFAULT_FOOTER } from './constants';
 import {
   RewardType,
   SteemitJsonMetadata,
@@ -13,6 +11,8 @@ import {
   SteemitRPCAllSubscriptions,
   SteemitRPCError,
 } from '../types';
+import { getCache, setCache } from './cache';
+import { DEFAULT_FOOTER } from './constants';
 import Encrypt from './encrypt';
 
 export interface MyCommunity {
@@ -86,40 +86,20 @@ export class SteemitClient {
     return body.replace(/\x08/g, '');
   }
 
-  setRewardTypeOptions(commentOptions: CommentOptionsOperation[1], rewardType: RewardType) {
-    // ref: https://github.com/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
-    switch (rewardType) {
-      case RewardType.DP: // decline payout, 보상 받지않기
-        commentOptions.max_accepted_payout = '0.000 SBD';
-        commentOptions.percent_steem_dollars = 0;
-        break;
-      case RewardType.SP: // 100% steem power payout, 100% 스팀파워로 수령
-        commentOptions.max_accepted_payout = '1000000.000 SBD';
-        commentOptions.percent_steem_dollars = 0; // 10000 === 100% (of 50%)
-        break;
-      case RewardType.DEFAULT:
-      default: // 50% steem power, 50% sd+steem, 스팀파워 50% + 스팀달러 50%로 수령
-        commentOptions.max_accepted_payout = '1000000.000 SBD';
-        commentOptions.percent_steem_dollars = 10000;
-    }
-  }
-
   decryptPassword(password: string): string {
     try {
       return Encrypt.decryptString(password);
-    } catch {
-      console.error('Failed to decrypt password');
+    } catch (err) {
+      console.error('Failed to decrypt password', err);
     }
     return password;
   }
 
-  broadcastPost(
-    commentOperation: CommentOperation[1],
-    commentOptionsOperation: CommentOptionsOperation[1],
-    privateKey: PrivateKey,
-    rewardType: RewardType,
-  ) {
-    if (rewardType && rewardType !== RewardType.DEFAULT) {
+  broadcastPost(commentOperation: CommentOperation[1], rewardType: RewardType) {
+    const privateKey = this.createPrivateKey(this.password);
+
+    if ([RewardType.DP, RewardType.SP].includes(rewardType)) {
+      const commentOptionsOperation = this.createCommentOptions(commentOperation, rewardType);
       return this.client.broadcast.commentWithOptions(
         commentOperation,
         commentOptionsOperation,
@@ -136,9 +116,7 @@ export class SteemitClient {
 
   publishPost(post: SteemitPost, { rewardType }: SteemitPostOptions) {
     const commentOperation = this.createCommentOperation(post);
-    const privateKey = this.createPrivateKey(this.password);
-    const commentOptions = this.createCommentOptions(commentOperation, rewardType);
-    return this.broadcastPost(commentOperation, commentOptions, privateKey, rewardType);
+    return this.broadcastPost(commentOperation, rewardType);
   }
 
   createCommentOperation(post: SteemitPost): CommentOperation[1] {
@@ -179,9 +157,11 @@ export class SteemitClient {
     };
 
     if (rewardType === RewardType.DP) {
+      // decline payout
       commentOptions.max_accepted_payout = '0.000 SBD';
       commentOptions.percent_steem_dollars = 0;
     } else if (rewardType === RewardType.SP) {
+      // 100% steem power payout
       commentOptions.percent_steem_dollars = 0;
     }
 
