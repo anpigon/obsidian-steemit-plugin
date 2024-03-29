@@ -13,8 +13,8 @@ export class Publisher {
     let body = await this.plugin.app.vault.read(file);
     body = stripFrontmatter(body);
     body = removeObsidianComments(body);
-    body = await this.renderDataViews(body);
-    body = await this.renderLinksToFullPath(body, file.path);
+    body = await this.renderDataViews(body, file);
+    body = await this.renderLinksToFullPath(body, file);
 
     const results = {
       category: frontMatter?.category?.toString() || '',
@@ -30,7 +30,7 @@ export class Publisher {
     return new Promise(resolve => this.plugin.app.fileManager.processFrontMatter(file, resolve));
   }
 
-  async renderDataViews(text: string) {
+  async renderDataViews(text: string, file: TFile) {
     const dataViewRegex = /```dataview(.+?)```/gms;
     const matches = text.matchAll(dataViewRegex);
     if (!matches) return text;
@@ -42,7 +42,7 @@ export class Publisher {
         const query = queryBlock[1];
         if ('DataviewAPI' in window) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const markdown = await (window as any).DataviewAPI.tryQueryMarkdown(query);
+          const markdown = await (window as any).DataviewAPI.tryQueryMarkdown(query, file);
           result = result.replace(block, markdown);
         }
       } catch (err) {
@@ -55,7 +55,7 @@ export class Publisher {
     return result;
   }
 
-  async renderLinksToFullPath(text: string, filePath: string): Promise<string> {
+  async renderLinksToFullPath(text: string, file: TFile): Promise<string> {
     let result = text.toString();
 
     const linkedFileRegex = /\[\[(.*?)\]\]/g;
@@ -77,7 +77,7 @@ export class Publisher {
           }
           const linkedFile = this.plugin.app.metadataCache.getFirstLinkpathDest(
             getLinkpath(linkedFileName),
-            filePath,
+            file.path,
           );
           if (!linkedFile) {
             // 내부 파일 링크가 없는 경우 prettyName만 표시한다.
