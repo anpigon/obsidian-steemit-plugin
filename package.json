@@ -21,8 +21,9 @@
   },
   "engines": {
     "node": ">=20",
-    "yarn": ">=1.22",
-    "npm": "please use yarn"
+    "pnpm": ">=8.15.0",
+    "yarn": "please use pnpm",
+    "npm": "please use pnpm"
   },
   "keywords": [
     "steem",
