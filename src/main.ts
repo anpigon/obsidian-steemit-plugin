@@ -1,20 +1,10 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-	getLinkpath,
-	MarkdownView,
-	Notice,
-	Plugin,
-	stringifyYaml,
-	TFile
-} from 'obsidian';
+import { getLinkpath, MarkdownView, Notice, Plugin, stringifyYaml, TFile } from 'obsidian';
 
 import { Publisher } from './helpers/publisher';
 import { SteemitClient } from './helpers/steemit-client';
-import {
-	createNewFrontMatter,
-	extractContentBody
-} from './helpers/utils';
+import { createNewFrontMatter, extractContentBody } from './helpers/utils';
 import { DEFAULT_SETTINGS, SteemitSettingTab } from './settings';
 import { SteemitPluginSettings, SteemitPost, SteemitPostOptions } from './types';
 import { SubmitConfirmModal } from './ui/submit_confirm_modal';
@@ -60,12 +50,9 @@ export default class SteemitPlugin extends Plugin {
 
   async scrapSteemit() {
     try {
-      const activeView = this.getActiveView();
-      if (!activeView || !activeView.file) {
-        throw new Error('There is no active file.');
-      }
+      const file = this.getActiveViewFile();
 
-      const frontmatter = await new Publisher(this).processFrontMatter(activeView.file);
+      const frontmatter = await new Publisher(this).processFrontMatter(file);
       const url = frontmatter?.url;
       if (!url) {
         throw new Error('Front Matter not found. expect a url.');
@@ -83,19 +70,19 @@ export default class SteemitPlugin extends Plugin {
       });
       const fileContent = `---\n${newFrontmatter}---\n${res.body}`;
 
-      await this.app.vault.modify(activeView.file, fileContent);
+      await this.app.vault.modify(file, fileContent);
     } catch (ex: any) {
       console.warn(ex);
       new Notice(ex.toString());
     }
   }
 
-  getActiveView() {
+  getActiveViewFile() {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!activeView?.file) {
       throw new Error('There is no editor view found.');
     }
-    return activeView;
+    return activeView.file;
   }
 
   async publishSteemit() {
@@ -104,19 +91,15 @@ export default class SteemitPlugin extends Plugin {
       if (!this.settings || !this.settings.username || !this.settings.password) {
         throw Error('Your steemit username or password is invalid.');
       }
-      this.client = new SteemitClient(this.settings.username, this.settings.password);
 
-      const activeView = this.getActiveView();
-      const file = activeView.file;
-      if (!file) {
-        throw new Error('There is no active file.');
-      }
+      const file = this.getActiveViewFile();
 
       const post = await new Publisher(this).generate(file);
       if (!post.body) {
         throw new Error('Content is empty.');
       }
 
+      this.client = new SteemitClient(this.settings.username, this.settings.password);
       new SubmitConfirmModal(this, post, async (post, postOptions) => {
         await this.publishAndUpdate(post, postOptions, file);
       }).open();
