@@ -9,7 +9,7 @@ export class Publisher {
 
   async generate(file: TFile): Promise<SteemitPost> {
     const frontMatter = await this.processFrontMatter(file);
-	
+
     let body = await this.plugin.app.vault.read(file);
     body = stripFrontmatter(body);
     body = removeObsidianComments(body);
@@ -40,18 +40,16 @@ export class Publisher {
       try {
         const block = queryBlock[0];
         const query = queryBlock[1];
-        if ('DataViewAPI' in window) {
+        if ('DataviewAPI' in window) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const markdown = await (window as any).DataViewAPI.tryQueryMarkdown(query);
+          const markdown = await (window as any).DataviewAPI.tryQueryMarkdown(query);
           result = result.replace(block, markdown);
         }
-        return queryBlock[0];
       } catch (err) {
         console.log(err);
         new Notice(
           'Unable to render dataview query. Please update the dataview plugin to the latest version.',
         );
-        return queryBlock[0];
       }
     }
     return result;
