@@ -86,29 +86,11 @@ export class SteemitClient {
     return body.replace(/\x08/g, '');
   }
 
-  setRewardTypeOptions(commentOptions: CommentOptionsOperation[1], rewardType: RewardType) {
-    // ref: https://github.com/realmankwon/upvu_web/blob/ae7a8ef164d8a8ff9b4b570ca3e65d4e671165de/src/common/helper/posting.ts#L115
-    switch (rewardType) {
-      case RewardType.DP: // decline payout, 보상 받지않기
-        commentOptions.max_accepted_payout = '0.000 SBD';
-        commentOptions.percent_steem_dollars = 0;
-        break;
-      case RewardType.SP: // 100% steem power payout, 100% 스팀파워로 수령
-        commentOptions.max_accepted_payout = '1000000.000 SBD';
-        commentOptions.percent_steem_dollars = 0; // 10000 === 100% (of 50%)
-        break;
-      case RewardType.DEFAULT:
-      default: // 50% steem power, 50% sd+steem, 스팀파워 50% + 스팀달러 50%로 수령
-        commentOptions.max_accepted_payout = '1000000.000 SBD';
-        commentOptions.percent_steem_dollars = 10000;
-    }
-  }
-
   decryptPassword(password: string): string {
     try {
       return Encrypt.decryptString(password);
-    } catch {
-      console.error('Failed to decrypt password');
+    } catch (err) {
+      console.error('Failed to decrypt password', err);
     }
     return password;
   }
@@ -179,9 +161,11 @@ export class SteemitClient {
     };
 
     if (rewardType === RewardType.DP) {
+      // decline payout
       commentOptions.max_accepted_payout = '0.000 SBD';
       commentOptions.percent_steem_dollars = 0;
     } else if (rewardType === RewardType.SP) {
+      // 100% steem power payout
       commentOptions.percent_steem_dollars = 0;
     }
 
