@@ -42,7 +42,7 @@ export class Publisher {
         const query = queryBlock[1];
         if ('DataviewAPI' in window) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const markdown = await (window as any).DataviewAPI.tryQueryMarkdown(query, file);
+          const markdown = await (window as any).DataviewAPI.tryQueryMarkdown(query, file.path);
           result = result.replace(block, markdown);
         }
       } catch (err) {
