@@ -144,11 +144,15 @@ export default class SteemitPlugin extends Plugin {
           if (linkedFile?.extension === 'md') {
             const frontmatter = this.app.metadataCache.getFileCache(linkedFile)?.frontmatter;
             if (frontmatter && 'permlink' in frontmatter) {
-              const { permlink, title } = frontmatter;
-              result = result.replace(
-                linkMatch,
-                `[${title || prettyName}](/@${this.settings?.username ?? ''}/${permlink})`,
-              );
+              const { permlink, title, url } = frontmatter;
+              if (url) {
+                result = result.replace(linkMatch, `[${title || prettyName}](${url})`);
+              } else {
+                result = result.replace(
+                  linkMatch,
+                  `[${title || prettyName}](/@${this.settings?.username ?? ''}/${permlink})`,
+                );
+              }
             } else {
               // 내부 파일 링크가 tistoryPostUrl이 없는 경우 prettyName만 표시한다.
               result = result.replace(linkMatch, prettyName);
