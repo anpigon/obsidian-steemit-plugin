@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.1.8...0.4.0) (2024-03-29)
+
+
+### Features
+
+* 보상옵션 ([32dbc92](https://github.com/anpigon/obsidian-steemit-plugin/commit/32dbc92bf2c3e93684abaa31783f723d80f777aa))
+* Added Dataview Rendering Feature ([#2](https://github.com/anpigon/obsidian-steemit-plugin/issues/2)) ([28ff0a7](https://github.com/anpigon/obsidian-steemit-plugin/commit/28ff0a77c8446dbf67bf37e7333773c9a5b1459d))
+* **constants.ts:** add DEFAULT_FOOTER constant to store default footer text for posts ([fff04fe](https://github.com/anpigon/obsidian-steemit-plugin/commit/fff04fe3773a1925a220ee60e7e8f0b60474cfef))
+* **manifest-beta.json:** add manifest file for beta version of the Steemit plugin ([c2f8ebe](https://github.com/anpigon/obsidian-steemit-plugin/commit/c2f8ebeccfc7e42c68dfd685126066e9686e26d7))
+
+
+### Bug Fixes
+
+* **main.ts:** change method name from newPost to publishPost in SteemitPlugin class to improve clarity and semantics ([c06ad57](https://github.com/anpigon/obsidian-steemit-plugin/commit/c06ad574298099957a5c8332bf52bb9b97a7b70f))
+* **main.ts:** change private variable name from #settings to _settings for consistency and improve readability ([7ad0a6a](https://github.com/anpigon/obsidian-steemit-plugin/commit/7ad0a6ad1ff825c713db013bb3c95caf1715dcc2))
+* **main.ts:** import FrontMatterCache from 'obsidian' to resolve compilation error ([2d94c08](https://github.com/anpigon/obsidian-steemit-plugin/commit/2d94c0815d0eac425e1bf81f6cdd4e3e2fa3902b))
+* **main.ts:** import missing functions from utils file to avoid undefined errors ([1cd7391](https://github.com/anpigon/obsidian-steemit-plugin/commit/1cd73914c414d87355ac760b310e3bad43b3e714))
+* **main.ts:** import safeStorage from window.electron.remote.safeStorage to fix undefined error ([51859b1](https://github.com/anpigon/obsidian-steemit-plugin/commit/51859b12c1aa6f543db063899c2a674be4f17f18))
+* **main.ts:** import SteemitPostOptions from types to fix missing type error ([b2490cc](https://github.com/anpigon/obsidian-steemit-plugin/commit/b2490cc32b5ce1480d87c5349616c0003ac58ce3))
+* **main.ts:** remove unused import and variable declaration to improve code readability and maintainability ([2ef9d4d](https://github.com/anpigon/obsidian-steemit-plugin/commit/2ef9d4d8f3ea5d486b238ee2fe5d38b1aa0c0fd1))
+* **settings.ts:** change nullish coalescing operator (??) to logical OR operator (||) for setting default values in text inputs ([652626a](https://github.com/anpigon/obsidian-steemit-plugin/commit/652626a4f12212fb6b162abf1b3776a106ea2d45))
+* **settings.ts:** fix saveSettings method to correctly handle saving settings and only save if the value has changed ([34dcb83](https://github.com/anpigon/obsidian-steemit-plugin/commit/34dcb83f8eab72cc7fc0b7dec5e0f538a3827d62))
+* **settings.ts:** refactor createSetting method to improve readability and maintainability ([e312158](https://github.com/anpigon/obsidian-steemit-plugin/commit/e312158290f32f44f1f0c22587f8c3ded119a463))
+* **settings.ts:** remove 'password' type from CreateSettingArgs interface and replace it with 'text' type with isSecret flag to improve semantics and security ([37ea005](https://github.com/anpigon/obsidian-steemit-plugin/commit/37ea005902d3d0b462bd0bfc26851626fe4c0c00))
+* **settings.ts:** remove unused defaultAppName variable ([6325e78](https://github.com/anpigon/obsidian-steemit-plugin/commit/6325e7880d808517ee99d5139833b8212a16f26d))
+* **steemit-client.ts:** fix createPrivateKey method to correctly decrypt the password before creating the private key ([0273626](https://github.com/anpigon/obsidian-steemit-plugin/commit/027362673c4dbf75d8d6194a3265d85f659b75b0))
+* **steemit-client.ts:** fix import order to follow convention and improve readability ([d64fc52](https://github.com/anpigon/obsidian-steemit-plugin/commit/d64fc52296841a876d70006e301e5a8536bb2ec0))
+* **steemit-client.ts:** handle case where post tags are undefined in createTags method ([236c198](https://github.com/anpigon/obsidian-steemit-plugin/commit/236c19883590cc3f4b283311bc859a7965734b7b))
+* **steemit-client.ts:** refactor setRewardTypeOptions method to improve readability and maintainability ([1393c19](https://github.com/anpigon/obsidian-steemit-plugin/commit/1393c199b8ac62117d18a3b2464cc603ddea2131))
+* **steemit-client.ts:** remove unnecessary line break in constructor parameters for better code readability ([375ee4e](https://github.com/anpigon/obsidian-steemit-plugin/commit/375ee4ef3f7f726d29a055132858ae0a32075204))
+* **steemit-client.ts:** replace hardcoded Steem RPC server URL with a constant array of server URLs for flexibility and future expansion ([2131189](https://github.com/anpigon/obsidian-steemit-plugin/commit/2131189ef528c0097d5b1c60dd3dd7cf65688b9a))
+* **submit_confirm_modal.ts:** add optional parameter 'category' to the 'getCommunityCategories' method to allow filtering by category ([10e0de9](https://github.com/anpigon/obsidian-steemit-plugin/commit/10e0de91665b7f5cdedaeb4542f0de8f4a11a2c9))
+* **submit_confirm_modal.ts:** add validation checks for required fields before submitting the form ([6a17931](https://github.com/anpigon/obsidian-steemit-plugin/commit/6a179317cea6a4cf560fd881b55636579d8fa675))
+* **submit_confirm_modal.ts:** fix default category value to be an empty string instead of '0' to improve semantics ([63fa69b](https://github.com/anpigon/obsidian-steemit-plugin/commit/63fa69b88bc212604397007e565b11a499ca46a9))
+* **submit_confirm_modal.ts:** fix handleSubmit() method to correctly validate required fields before submitting ([587b04c](https://github.com/anpigon/obsidian-steemit-plugin/commit/587b04c135a9be76cc858867355e5b4cfd7e16f7))
+* **submit_confirm_modal.ts:** fix reference to plugin variable to use this.plugin for consistency ([eb49253](https://github.com/anpigon/obsidian-steemit-plugin/commit/eb492537c06d2e3cb4017b1d318472abed498689))
+* **submit_confirm_modal.ts:** refactor handleSubmit() method to use a separate validateRequiredFields() method for better code organization and reusability ([42e1608](https://github.com/anpigon/obsidian-steemit-plugin/commit/42e16082e22a4a86ca9cb094dfac30b87e3a81f4))
+* **submit_confirm_modal.ts:** refactor initializePostOptions method to simplify code and improve readability ([92c3d4b](https://github.com/anpigon/obsidian-steemit-plugin/commit/92c3d4b18d27468b2c5c888742b93f8711119f7c))
+
 ### [0.3.7](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.6...0.3.7) (2024-01-24)
 
 ### [0.3.6](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.3.5...0.3.6) (2024-01-17)
