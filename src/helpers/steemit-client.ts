@@ -95,11 +95,9 @@ export class SteemitClient {
     return password;
   }
 
-  broadcastPost(
-    commentOperation: CommentOperation[1],
-    privateKey: PrivateKey,
-    rewardType: RewardType,
-  ) {
+  broadcastPost(commentOperation: CommentOperation[1], rewardType: RewardType) {
+    const privateKey = this.createPrivateKey(this.password);
+
     if ([RewardType.DP, RewardType.SP].includes(rewardType)) {
       const commentOptionsOperation = this.createCommentOptions(commentOperation, rewardType);
       return this.client.broadcast.commentWithOptions(
@@ -118,8 +116,7 @@ export class SteemitClient {
 
   publishPost(post: SteemitPost, { rewardType }: SteemitPostOptions) {
     const commentOperation = this.createCommentOperation(post);
-    const privateKey = this.createPrivateKey(this.password);
-    return this.broadcastPost(commentOperation, privateKey, rewardType);
+    return this.broadcastPost(commentOperation, rewardType);
   }
 
   createCommentOperation(post: SteemitPost): CommentOperation[1] {
