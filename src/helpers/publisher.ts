@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { FrontMatterCache, TFile, getLinkpath } from 'obsidian';
+import { FrontMatterCache, Notice, TFile, getLinkpath } from 'obsidian';
 import SteemitPlugin from 'src/main';
 import { makeDefaultPermlink, removeObsidianComments, stripFrontmatter } from './utils';
 import { SteemitPost } from 'src/types';
@@ -26,6 +26,33 @@ export class Publisher {
 
   async processFrontMatter(file: TFile): Promise<FrontMatterCache> {
     return new Promise(resolve => this.plugin.app.fileManager.processFrontMatter(file, resolve));
+  }
+
+  async renderDataViews(text: string) {
+    const dataViewRegex = /```dataview(.+?)```/gms;
+    const matches = text.matchAll(dataViewRegex);
+    if (!matches) return text;
+
+    let result = text.toString();
+    for (const queryBlock of matches) {
+      try {
+        const block = queryBlock[0];
+        const query = queryBlock[1];
+        if ('DataViewAPI' in window) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const markdown = await (window as any).DataViewAPI.tryQueryMarkdown(query);
+          result = result.replace(block, markdown);
+        }
+        return queryBlock[0];
+      } catch (err) {
+        console.log(err);
+        new Notice(
+          'Unable to render dataview query. Please update the dataview plugin to the latest version.',
+        );
+        return queryBlock[0];
+      }
+    }
+    return result;
   }
 
   async renderLinksToFullPath(text: string, filePath: string): Promise<string> {
