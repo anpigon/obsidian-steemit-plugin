@@ -1,6 +1,6 @@
 {
   "name": "obsidian-steemit",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A plugin for publishing Obsidian documents to Steemit. (https://steemit.com)",
   "main": "main.js",
   "scripts": {
