@@ -170,7 +170,7 @@ export default class SteemitPlugin extends Plugin {
 
   getActiveView() {
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!activeView || !activeView.file) {
+    if (!activeView?.file) {
       throw new Error('There is no editor view found.');
     }
     return activeView;
