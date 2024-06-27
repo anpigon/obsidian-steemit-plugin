@@ -97,7 +97,7 @@ export class SteemitSettingTab extends PluginSettingTab {
 
     this.createSetting(containerEl, {
       type: 'text',
-      key: 'appName',
+      key: 'category',
       name: 'Default Category (options)',
       desc: 'Enter the category you want to post.',
       placeholder: 'ex. hive-101145',
