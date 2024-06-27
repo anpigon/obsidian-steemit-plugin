@@ -24,6 +24,7 @@ export class SubmitConfirmModal extends Modal {
   // postOptions 초기화
   private initializePostOptions() {
     this.postData.category = this.postData.category || this.plugin.settings?.category || '';
+	this.postData.tags = this.postData.tags || this.plugin.settings?.tags || '';
     this.postOptions.rewardType = this.plugin.settings?.rewardType || RewardType.DEFAULT;
   }
 
@@ -110,9 +111,7 @@ export class SubmitConfirmModal extends Modal {
       .setClass('no-border')
       .setClass('full-width')
       .addText(cb => {
-        // 기존 태그가 있으면 그대로 사용하고, 없으면 settings의 태그를 사용
-        const defaultTags = this.postData.tags || this.plugin.settings?.tags || '';
-        cb.setValue(defaultTags)
+        cb.setValue(this.postData.tags)
           .setPlaceholder('tag1, tag2, tag3')
           .onChange(value => (this.postData.tags = value));
       });
