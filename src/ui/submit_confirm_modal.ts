@@ -32,9 +32,10 @@ export class SubmitConfirmModal extends Modal {
     try {
       const myCommunities = await this.plugin.client?.getMyCommunities();
       const categoryOptions = myCommunities?.reduce<Record<string, string>>(
-        (a, b) => ({ ...a, [b.name]: b.title }),
+        (acc, community) => ({ ...acc, [community.name]: community.title }),
         {},
       );
+
       return {
         '': 'My Blog',
         ...(category && { [category]: 'My Blog' }),
@@ -49,11 +50,11 @@ export class SubmitConfirmModal extends Modal {
 
   validateRequiredFields() {
     const requiredFields: Array<keyof SteemitPost> = ['permlink', 'title', 'tags'];
-    for (const field of requiredFields) {
-      if (!this.postData[field]) {
-        new Notice(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
-        return false;
-      }
+    const missingFields = requiredFields.filter(field => !this.postData[field]);
+
+    if (missingFields.length > 0) {
+      new Notice(`The following fields are required: ${missingFields.join(', ')}`);
+      return false;
     }
 
     return true;
@@ -141,10 +142,17 @@ export class SubmitConfirmModal extends Modal {
     const { contentEl } = this;
     contentEl.classList?.add('steem-plugin');
     contentEl.createEl('h2', { text: 'Publish to steemit' });
+
     const loading = CustomLoadingComponent(contentEl);
-    const communityCategories = await this.getCommunityCategories(this.postData.category);
-    this.createUI(contentEl, communityCategories);
-    loading.remove();
+    try {
+      const communityCategories = await this.getCommunityCategories(this.postData.category);
+      this.createUI(contentEl, communityCategories);
+    } catch (error) {
+      console.error('UI creation errors:', error);
+      new Notice('An error occurred while generating the UI. Please check the console.');
+    } finally {
+      loading.remove();
+    }
   }
 
   onClose() {
