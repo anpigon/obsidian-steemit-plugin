@@ -109,8 +109,11 @@ export class SubmitConfirmModal extends Modal {
       .setClass('no-border')
       .setClass('full-width')
       .addText(cb => {
-        cb.setValue(this.postData.tags);
-        cb.onChange(value => (this.postData.tags = value));
+        // 기존 태그가 있으면 그대로 사용하고, 없으면 settings의 태그를 사용
+        const defaultTags = this.postData.tags || this.plugin.settings?.tags || '';
+        cb.setValue(defaultTags)
+          .setPlaceholder('tag1, tag2, tag3')
+          .onChange(value => (this.postData.tags = value));
       });
 
     new Setting(contentEl).setName('Rewards').addDropdown(cb => {
