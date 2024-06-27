@@ -29,16 +29,22 @@ export class SubmitConfirmModal extends Modal {
 
   // 커뮤니티 카테고리를 가져온다.
   async getCommunityCategories(category?: string) {
-    const myCommunities = await this.plugin.client?.getMyCommunities();
-    const categoryOptions = myCommunities?.reduce<Record<string, string>>(
-      (a, b) => ({ ...a, [b.name]: b.title }),
-      {},
-    );
-    return {
-      '': 'My Blog',
-      ...(category && { [category]: 'My Blog' }),
-      ...categoryOptions,
-    };
+    try {
+      const myCommunities = await this.plugin.client?.getMyCommunities();
+      const categoryOptions = myCommunities?.reduce<Record<string, string>>(
+        (a, b) => ({ ...a, [b.name]: b.title }),
+        {},
+      );
+      return {
+        '': 'My Blog',
+        ...(category && { [category]: 'My Blog' }),
+        ...categoryOptions,
+      };
+    } catch (error) {
+      console.error(error);
+      new Notice('Error fetching community categories. Please check your settings.');
+      return { '': 'My Blog' };
+    }
   }
 
   validateRequiredFields() {
@@ -55,8 +61,13 @@ export class SubmitConfirmModal extends Modal {
 
   async handleSubmit() {
     if (this.validateRequiredFields()) {
-      this.callback(this.postData, this.postOptions);
-      this.close();
+      try {
+        this.callback(this.postData, this.postOptions);
+        this.close();
+      } catch (error) {
+        console.error(error);
+        new Notice('Error publishing post. Please check your settings.');
+      }
     }
   }
 
