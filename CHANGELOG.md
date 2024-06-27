@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.3](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.4.2...0.4.3) (2024-06-27)
+
+
+### Features
+
+* **encrypt:** add isEncrypted method to check if a string is encrypted ([a5dcbe1](https://github.com/anpigon/obsidian-steemit-plugin/commit/a5dcbe1720df11f27a2a149fc479e8dc6cf25af3))
+* **settings:** add defaultTags setting to SteemitPluginSettings and corresponding UI component ([f7822f7](https://github.com/anpigon/obsidian-steemit-plugin/commit/f7822f7162d773fe03d1bf47ef1558a9aeed219d))
+* **SubmitConfirmModal:** add default tags and placeholder to dropdown for better user experience ([7048069](https://github.com/anpigon/obsidian-steemit-plugin/commit/704806901ada24deb9f16b55d6f8ac117f1711a1))
+
+
+### Bug Fixes
+
+* **encrypt.ts:** update crypto.scryptSync to use Buffer.from for key encryption ([486d1f1](https://github.com/anpigon/obsidian-steemit-plugin/commit/486d1f1f053d623a9621a71606bc67eed06c44d6))
+* **encrypt.ts:** update encryption key retrieval to use process.env.ENCRYPTION_KEY and add error handling ([9deafee](https://github.com/anpigon/obsidian-steemit-plugin/commit/9deafee09580cde41bb6babb3b5a7b889767405b))
+* **settings.ts:** rename setting key from appName to category for consistency and accuracy ([ab76b61](https://github.com/anpigon/obsidian-steemit-plugin/commit/ab76b61867015daebd72f596afee4e33b0f31d9f))
+* **SubmitConfirmModal:** fix default tags initialization to use plugin settings ([b9a5dd7](https://github.com/anpigon/obsidian-steemit-plugin/commit/b9a5dd7704fd56314ee4be1c254ee120d3063a7a))
+* **SubmitConfirmModal:** fix typo in Record type parameter name from 'a' to 'acc' ([dd580e3](https://github.com/anpigon/obsidian-steemit-plugin/commit/dd580e34720568375bdda51b17382d14e13b1cb3))
+* **SubmitConfirmModal:** handle errors when fetching community categories and publishing posts ([95b038c](https://github.com/anpigon/obsidian-steemit-plugin/commit/95b038c56e7c630e7e37c6b45f9a0df7ea21b187))
+
 ### [0.4.2](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.4.1...0.4.2) (2024-03-29)
 
 
