@@ -21,6 +21,7 @@ export interface SteemitPluginSettings {
   password: string;
   appName: string;
   rewardType: RewardType;
+  tags: string;
 }
 
 export interface SteemitJsonMetadata {

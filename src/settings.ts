@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS: SteemitPluginSettings = {
   password: '',
   appName: '',
   rewardType: RewardType.DEFAULT,
+  tags: '',
 };
 
 interface CreateSettingArgs {
@@ -102,6 +103,15 @@ export class SteemitSettingTab extends PluginSettingTab {
       desc: 'Enter the category you want to post.',
       placeholder: 'ex. hive-101145',
       defaultValue: this.plugin.settings?.category,
+    });
+
+    this.createSetting(containerEl, {
+      type: 'text',
+      key: 'tags',
+      name: 'Default Tags (optional)',
+      desc: 'Enter default tags for your posts. Separate multiple tags with commas.',
+      placeholder: 'ex. steemit,hive,blog',
+      defaultValue: this.plugin.settings?.tags,
     });
 
     this.createSetting(containerEl, {
