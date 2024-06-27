@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: SteemitPluginSettings = {
   password: '',
   appName: '',
   rewardType: RewardType.DEFAULT,
+  tags: '',
 };
 
 export const RewardTypeOptions = [
