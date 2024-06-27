@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.4](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.4.3...0.4.4) (2024-06-27)
+
+
+### Features
+
+* **constants.ts:** add new 'tags' property to DEFAULT_SETTINGS object in constants file ([e4afc90](https://github.com/anpigon/obsidian-steemit-plugin/commit/e4afc901110b345d0164315885f27326fba1d62a))
+
 ### [0.4.3](https://github.com/anpigon/obsidian-steemit-plugin/compare/0.4.2...0.4.3) (2024-06-27)
 
 
