@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import SteemitPlugin from './main';
 import { RewardType, SteemitPluginSettings } from './types';
 import Encrypt from './helpers/encrypt';
@@ -32,10 +32,19 @@ export class SteemitSettingTab extends PluginSettingTab {
     super(app, plugin);
   }
 
-  async saveSettings(name: keyof SteemitPluginSettings, value: string | RewardType) {
+  async saveSettings(
+    name: keyof SteemitPluginSettings,
+    value: SteemitPluginSettings[keyof SteemitPluginSettings],
+  ) {
     if (this.plugin.settings && this.plugin.settings[name] !== value) {
       this.plugin.settings[name] = value as RewardType;
-      await this.plugin.saveSettings();
+      try {
+        await this.plugin.saveSettings();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
+        new Notice('Error saving settings. Please check your settings.');
+      }
     }
   }
 
@@ -55,7 +64,7 @@ export class SteemitSettingTab extends PluginSettingTab {
         if (placeholder) text.setPlaceholder(placeholder);
         text.setValue(this.plugin.settings?.[key] || '');
         text.onChange(async value => {
-          if (isSecret && value) {
+          if (isSecret && value && !Encrypt.isEncrypted(value)) {
             value = Encrypt.encryptString(value);
           }
           this.saveSettings(key, value);

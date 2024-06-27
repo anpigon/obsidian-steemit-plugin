@@ -19,4 +19,31 @@ export default class Encrypt {
     const decrypted = decipher.update(encryptedText, 'base64', 'utf8');
     return decrypted + decipher.final('utf8');
   }
+
+  static isEncrypted(value: string): boolean {
+    // 암호화된 문자열은 'base64로 인코딩된 IV : 암호화된 텍스트' 형식입니다.
+    const parts = value.split(':');
+
+    // 암호화된 문자열은 정확히 두 부분으로 나뉘어야 합니다.
+    if (parts.length !== 2) {
+      return false;
+    }
+
+    const [iv, encryptedText] = parts;
+
+    // IV는 base64로 인코딩된 16바이트여야 합니다.
+    if (Buffer.from(iv, 'base64').length !== this.IV_LENGTH) {
+      return false;
+    }
+
+    // 암호화된 텍스트는 base64로 인코딩되어 있어야 합니다.
+    try {
+      Buffer.from(encryptedText, 'base64');
+    } catch {
+      return false;
+    }
+
+    // 모든 조건을 만족하면 암호화된 것으로 간주합니다.
+    return true;
+  }
 }
